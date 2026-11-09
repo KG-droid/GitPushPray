@@ -5,6 +5,7 @@ import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import FlagRounded from '@mui/icons-material/FlagRounded'
 import FavoriteRounded from '@mui/icons-material/FavoriteRounded'
 import RateReviewRounded from '@mui/icons-material/RateReviewRounded'
+import AccessibilityNewRounded from '@mui/icons-material/AccessibilityNewRounded'
 import PublicRounded from '@mui/icons-material/PublicRounded'
 import StarsRounded from '@mui/icons-material/StarsRounded'
 import { useNavigate } from 'react-router-dom'
@@ -75,6 +76,12 @@ export function ExplorePage() {
           title="Our values"
           body="Five values, what they look like day to day, and colleague stories"
           onClick={() => navigate('/explore/values')}
+        />
+        <HubCard
+          icon={<AccessibilityNewRounded color="primary" />}
+          title="Accessibility and inclusion"
+          body="Our workplace adjustment policies, assistive technology, and how to ask for support"
+          onClick={() => navigate('/explore/accessibility')}
         />
       </Group>
 

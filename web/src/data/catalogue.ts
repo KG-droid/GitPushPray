@@ -84,6 +84,9 @@ const equipmentOptions: ChoiceOption[] = [
   { group: 'Assistive technology', value: 'assessment', label: 'I’m not sure what I need', detail: 'Occupational Health will arrange a workplace assessment' },
 ]
 
+/** The assistive technology on offer, shown on the Accessibility and inclusion page. */
+export const assistiveTechnology = equipmentOptions.filter((o) => o.group === 'Assistive technology' && o.value !== 'assessment')
+
 export const stepCatalogue: StepDefinition[] = [
   // ── Offer ───────────────────────────────────────────────
   {
