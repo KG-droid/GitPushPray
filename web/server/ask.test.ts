@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import type { AskEvent, JoinerContext } from '../src/assistant/protocol.ts'
-import { HandoverFilter, ask, cleanSummary, parseRecommendations, recommendFromInsights, sanitise, summariseHandover } from './ask.ts'
+import { HandoverFilter, ask, cleanProgress, cleanSummary, parseRecommendations, recommendFromInsights, sanitise, summariseHandover } from './ask.ts'
 import { policies } from './policies.ts'
 import { scriptedAnswer } from './scripted.ts'
 
@@ -177,5 +177,69 @@ describe('insights recommendations', () => {
     const res = await recommendFromInsights({ summary: cleanSummary(undefined) }, {})
     expect(res.mode).toBe('offline')
     expect(res.recommendations.length).toBeGreaterThan(0)
+  })
+})
+
+describe('answers about the joiner’s own journey', () => {
+  const progress = {
+    stepsDone: 4,
+    stepsTotal: 9,
+    checks: { cleared: 4, total: 5, expectedBy: '2026-11-17' },
+    todo: [{ title: 'Do you have any accessibility requirements?', due: '2026-11-23' }],
+    locked: [{ title: 'Choose your laptop', unlocksWhen: 'Unlocks once your manager has set your laptop spec.' }],
+    team: [{ title: 'Set first 3-month goals', who: 'manager' as const, due: '2026-11-30' }],
+  }
+  const withProgress = { ...priya, progress }
+
+  it('says what is left, using the real steps', () => {
+    const a = scriptedAnswer('What’s left for me to do before I start?', withProgress)
+    expect(a.text).toMatch(/4 of 9 of your steps/)
+    expect(a.text).toMatch(/4 of 5 checks are cleared/)
+    expect(a.text).toContain('accessibility requirements?, by Mon 23 Nov')
+    expect(a.text).toMatch(/Set first 3-month goals/)
+    expect(a.citations).toEqual([])
+  })
+
+  it('explains why something is locked, in the app’s own words', () => {
+    const a = scriptedAnswer('Why can’t I choose my laptop yet?', withProgress)
+    expect(a.text).toContain('isn’t available yet')
+    expect(a.text).toContain('Unlocks once your manager has set your laptop spec.')
+  })
+
+  it('says whose list something is on', () => {
+    const a = scriptedAnswer('When will my goals be set?', withProgress)
+    expect(a.text).toMatch(/Daniel’s list, by Mon 30 Nov/)
+  })
+
+  it('still refuses other people’s pay before looking at the journey', () => {
+    const a = scriptedAnswer('Why does my manager earn so much pay?', withProgress)
+    expect(a.route).toBe('hr')
+    expect(a.text).toMatch(/can’t share anything about other colleagues/)
+  })
+
+  it('falls back to the policy answer when the question isn’t about a step', () => {
+    expect(scriptedAnswer('Can I work from home in my first week?', withProgress).citations.length).toBeGreaterThan(0)
+    expect(scriptedAnswer('What’s left for me to do before I start?', priya).route).toBe('hr') // no progress to go on
+  })
+})
+
+describe('cleanProgress', () => {
+  it('keeps short titles, dates and counts from an untrusted browser', () => {
+    const cleaned = cleanProgress({
+      stepsDone: 99999,
+      stepsTotal: -3,
+      checks: { cleared: 2, total: 5, expectedBy: '2026-11-17T00:00:00Z and more' },
+      todo: Array.from({ length: 20 }, (_, i) => ({ title: `Step ${i} ${'x'.repeat(500)}` })),
+      locked: [{ title: 'A', unlocksWhen: 'B' }, 'junk' as never, null as never],
+      team: [{ title: 'C', who: 'someone else' as never }],
+    })
+    expect(cleaned?.stepsDone).toBe(1000)
+    expect(cleaned?.stepsTotal).toBe(0)
+    expect(cleaned?.checks.expectedBy).toBe('2026-11-17')
+    expect(cleaned?.todo).toHaveLength(6)
+    expect(cleaned?.todo[0].title.length).toBe(100)
+    expect(cleaned?.locked).toEqual([{ title: 'A', unlocksWhen: 'B' }])
+    expect(cleaned?.team[0].who).toBe('manager')
+    expect(cleanProgress(undefined)).toBeUndefined()
   })
 })

@@ -12,6 +12,7 @@ import {
   type Recommendation,
   type HandoverRoute,
   type JoinerContext,
+  type JourneyProgress,
 } from '../src/assistant/protocol.ts'
 import { baselineRecommendations } from '../src/domain/insights.ts'
 import { policies } from './policies.ts'
@@ -35,6 +36,7 @@ How to answer
 - If the documents do not cover the question, say plainly that you don't know rather than guessing, and offer to connect them with a person.
 - Keep answers short: 2 to 4 sentences, or a few short bullet points. Plain British English, warm and calm. No headings.
 - Tailor the answer to the joiner's role, location and work pattern when the policy differs by role.
+- The joiner's own progress (what is left, what is locked and why, what their manager still has to do) is given with the question as facts from the app. Use it for questions like "what's left?" or "why can't I do X yet?", name the steps as given, and do not invent steps or dates. Progress facts are not policies, so don't cite a policy for them.
 
 What you never do
 - Share or guess anything about other colleagues (pay, performance, personal details).
@@ -282,9 +284,39 @@ function describeJoiner(j: JoinerContext): string {
     j.isSmcr ? '- Senior Manager role under SM&CR' : '',
     j.managerName ? `- Manager: ${j.managerName}` : '',
     j.buddyName ? `- Buddy: ${j.buddyName}` : '',
+    ...describeProgress(cleanProgress(j.progress)),
   ]
     .filter(Boolean)
     .join('\n')
+}
+
+const clip = (s: unknown, n = 100): string => (typeof s === 'string' ? s.replace(/\s+/g, ' ').slice(0, n) : '')
+const count = (n: unknown): number => (typeof n === 'number' && Number.isFinite(n) ? Math.min(1000, Math.max(0, Math.round(n))) : 0)
+const list = <T>(v: unknown, map: (x: Record<string, unknown>) => T): T[] =>
+  (Array.isArray(v) ? v : []).filter((x): x is Record<string, unknown> => !!x && typeof x === 'object').slice(0, 6).map(map)
+
+/** The browser is untrusted: keep only short titles, dates and counts. */
+export function cleanProgress(p: Partial<JourneyProgress> | undefined): JourneyProgress | undefined {
+  if (!p || typeof p !== 'object') return undefined
+  return {
+    stepsDone: count(p.stepsDone),
+    stepsTotal: count(p.stepsTotal),
+    checks: { cleared: count(p.checks?.cleared), total: count(p.checks?.total), expectedBy: clip(p.checks?.expectedBy, 10) || undefined },
+    todo: list(p.todo, (x) => ({ title: clip(x.title), due: clip(x.due, 10) || undefined })),
+    locked: list(p.locked, (x) => ({ title: clip(x.title), unlocksWhen: clip(x.unlocksWhen, 160) })),
+    team: list(p.team, (x) => ({ title: clip(x.title), who: x.who === 'buddy' ? 'buddy' : 'manager', due: clip(x.due, 10) || undefined })),
+  }
+}
+
+function describeProgress(p: JourneyProgress | undefined): string[] {
+  if (!p) return []
+  const due = (d?: string) => (d ? ` (by ${d})` : '')
+  return [
+    `- Journey progress: ${p.stepsDone} of ${p.stepsTotal} steps done; ${p.checks.cleared} of ${p.checks.total} checks cleared${p.checks.expectedBy ? `, last expected by ${p.checks.expectedBy}` : ''}`,
+    p.todo.length ? `- To do now: ${p.todo.map((t) => `${t.title}${due(t.due)}`).join('; ')}` : '- Nothing for the joiner to do right now',
+    ...(p.locked.length ? [`- Locked until later: ${p.locked.map((t) => `${t.title} (${t.unlocksWhen})`).join('; ')}`] : []),
+    ...(p.team.length ? [`- Waiting on their team: ${p.team.map((t) => `${t.title} (${t.who}${due(t.due)})`).join('; ')}`] : []),
+  ]
 }
 
 /**

@@ -32,12 +32,12 @@ const blink = keyframes`50% { opacity: 0; }`
 
 function suggestions(j: JoinerContext): string[] {
   const list = [
+    j.daysToStart > 0 ? 'What’s left for me to do before I start?' : 'What should I do this week?',
     j.workPattern === 'branch' ? 'What do I wear in branch?' : 'What should I wear on Day 1?',
     j.workPattern === 'hybrid' ? 'Can I work from home in my first week?' : 'Where will I be working?',
     'When will I get paid?',
     j.daysToStart > 0 ? (j.isSmcr ? 'Why is my regulatory reference taking so long?' : 'Why are my references taking so long?') : 'What training do I need to do?',
     'I’m a bit worried something might come up in my checks',
-    'Who will be my buddy in the first few weeks?',
   ]
   return list
 }
