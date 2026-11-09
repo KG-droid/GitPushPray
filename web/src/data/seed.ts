@@ -339,6 +339,8 @@ function buildSeedEvents(): JourneyEvent[] {
     done(p.id, p.offerAcceptedOn, 'welcome-from-recruiter')
     done(p.id, p.offerAcceptedOn, 'share-documents')
     done(p.id, p.offerAcceptedOn, 'how-vetting-works')
+    // Everyone has answered the accessibility question except Priya, so the demo can start from it.
+    if (p.id !== 'priya') done(p.id, p.offerAcceptedOn, 'accessibility-needs', 'joiner', 'no')
   }
 
   // Priya: buddy assigned, has picked a learning bite. Goals not set yet (good for the chain-reaction demo).

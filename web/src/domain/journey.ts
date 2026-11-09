@@ -35,6 +35,8 @@ export interface StepView extends StepDefinition {
   state: StepState
   dueDate?: string
   doneAt?: string
+  /** Who completed it, so a choice the manager made with the joiner can be worded as agreed together */
+  doneBy?: Owner
   value?: string
   /** Last day a done step can still be changed, for steps that allow changes */
   changeUntil?: string
@@ -100,13 +102,16 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
   const checkViews = buildChecks(persona, past, today, checks)
   const cleared = new Set(checkViews.filter((c) => c.status === 'cleared').map((c) => c.id))
 
-  const mySteps = steps.filter((s) => matchesAudience(persona, s.audience))
-  const completions = effectiveCompletions(mySteps, past)
+  const audienceSteps = steps.filter((s) => matchesAudience(persona, s.audience))
+  const completions = effectiveCompletions(audienceSteps, past)
+  // Some steps only exist once an earlier answer says so (e.g. the manager conversation after a 'yes').
+  const mySteps = audienceSteps.filter((s) => !s.visibleWhen || completions.get(s.visibleWhen.stepId)?.value === s.visibleWhen.value)
 
   const ctx: RuleContext = {
     daysToStart,
     isCleared: (ids) => (ids === 'all' ? checkViews.every((c) => c.status === 'cleared') : ids.every((id) => cleared.has(id))),
     isDone: (stepId) => completions.has(stepId),
+    valueOf: (stepId) => completions.get(stepId)?.value,
   }
 
   const stepViews: StepView[] = mySteps.map((s) => {
@@ -117,6 +122,7 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
       ...s,
       state,
       doneAt: done?.at,
+      doneBy: done?.by,
       value: done?.value,
       dueDate: s.dueOffsetDays === undefined ? undefined : addDays(startDate, s.dueOffsetDays),
       changeUntil,
@@ -174,6 +180,7 @@ interface RuleContext {
   daysToStart: number
   isCleared: (ids: CheckId[] | 'all') => boolean
   isDone: (stepId: string) => boolean
+  valueOf: (stepId: string) => string | undefined
 }
 
 export function evaluate(rule: UnlockRule, ctx: RuleContext): boolean {
@@ -184,6 +191,8 @@ export function evaluate(rule: UnlockRule, ctx: RuleContext): boolean {
       return ctx.isCleared(rule.checks)
     case 'stepDone':
       return ctx.isDone(rule.stepId)
+    case 'stepValue':
+      return ctx.valueOf(rule.stepId) === rule.value
     case 'daysToStart':
       return ctx.daysToStart <= rule.atMost
     case 'daysSinceStart':
@@ -200,12 +209,12 @@ export function evaluate(rule: UnlockRule, ctx: RuleContext): boolean {
  * `resetBy` list was redone after it, or is itself undone (so a spec change clears the laptop choice
  * and, through it, the approval).
  */
-function effectiveCompletions(steps: StepDefinition[], past: JourneyEvent[]): Map<string, { at: string; value?: string }> {
-  const latest = new Map<string, { at: string; value?: string }>()
+function effectiveCompletions(steps: StepDefinition[], past: JourneyEvent[]): Map<string, { at: string; value?: string; by?: Owner }> {
+  const latest = new Map<string, { at: string; value?: string; by?: Owner }>()
   for (const e of past) {
     if (e.type !== 'step_completed') continue
     const p = e.payload as unknown as StepCompletedPayload
-    latest.set(p.stepId, { at: e.at, value: p.value })
+    latest.set(p.stepId, { at: e.at, value: p.value, by: p.by })
   }
 
   const byId = new Map(steps.map((s) => [s.id, s]))
@@ -220,7 +229,7 @@ function effectiveCompletions(steps: StepDefinition[], past: JourneyEvent[]): Ma
     return result
   }
 
-  const effective = new Map<string, { at: string; value?: string }>()
+  const effective = new Map<string, { at: string; value?: string; by?: Owner }>()
   for (const [id, done] of latest) if (!byId.has(id) || standsFor(id)) effective.set(id, done)
   return effective
 }

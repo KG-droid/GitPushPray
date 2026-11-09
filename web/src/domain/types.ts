@@ -143,6 +143,8 @@ export type UnlockRule =
   | { type: 'always' }
   | { type: 'checksCleared'; checks: CheckId[] | 'all' }
   | { type: 'stepDone'; stepId: string }
+  /** A step is done with exactly this value, e.g. the joiner answered 'no' to the accessibility question */
+  | { type: 'stepValue'; stepId: string; value: string }
   | { type: 'daysToStart'; atMost: number }
   | { type: 'daysSinceStart'; atLeast: number }
   | { type: 'all'; rules: UnlockRule[] }
@@ -175,6 +177,8 @@ export interface StepDefinition {
   /** The step is done on its own screen; journey views link there instead of showing the form */
   href?: string
   hrefLabel?: string
+  /** Only shown once another step has been completed with this value (e.g. the manager conversation after a 'yes') */
+  visibleWhen?: { stepId: string; value: string }
   /** Reached from the Explore tab only: kept out of the journey stages and the "next step" on Today */
   exploreOnly?: boolean
   /** Due date relative to the (current) start date. -14 = two weeks before Day 1 */

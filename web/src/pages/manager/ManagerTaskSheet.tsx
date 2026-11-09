@@ -58,6 +58,8 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
             <BuddyForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-set-device-spec' ? (
             <LaptopSpecForm journey={journey} onDone={onClose} />
+          ) : step.id === 'mgr-accessibility-conversation' ? (
+            <AccessibilityConversationForm journey={journey} onDone={onClose} />
           ) : (
             <SimpleAction journey={journey} stepId={step.id} label={step.id === 'mgr-request-device' ? 'Approve order' : 'Submit request'} onDone={onClose} />
           )}
@@ -244,6 +246,133 @@ function LaptopSpecForm({
         </Button>
         {onCancel && <Button onClick={onCancel}>Cancel</Button>}
       </Stack>
+    </Stack>
+  )
+}
+
+const conversationPrompts = [
+  'Ask what would make their first weeks easier. Let them lead, and don’t ask for a diagnosis or medical detail.',
+  'Talk through the laptop and headset options together, including anything that isn’t on the standard list.',
+  'Mention Occupational Health if they’d like a workplace assessment. IT and Occupational Health can arrange specialist kit.',
+  'Agree what to record. Keep the detail between you, them, IT and Occupational Health.',
+]
+
+/**
+ * The manager talks adjustments through with the joiner, then records what was agreed.
+ * The laptop and headset are saved as the joiner's own choices so the rest of the journey carries on as normal.
+ */
+function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+  const { completeStep } = useDemo()
+  const name = journey.persona.firstName
+  const stepOf = (id: string) => journey.steps.find((s) => s.id === id)
+  const specStep = stepOf('mgr-set-device-spec')
+  const kitStep = stepOf('choose-kit')
+  const headsetStep = stepOf('choose-headset')
+  const [spec, setSpec] = useState<string>(specStep?.value ?? suggestedLaptopSpec(journey.persona.jobFamily))
+  const [laptop, setLaptop] = useState<string | undefined>(kitStep?.value)
+  const [headset, setHeadset] = useState<string | undefined>(headsetStep?.value)
+  const ready = (!kitStep || !!laptop) && (!headsetStep || !!headset)
+
+  const record = () => {
+    const as = { by: 'manager' as const, personaId: journey.persona.id }
+    // The spec goes first: a laptop choice only stands if it was made after the spec.
+    if (specStep && laptop) completeStep('mgr-set-device-spec', { ...as, value: spec })
+    if (kitStep && laptop) completeStep('choose-kit', { ...as, value: laptop })
+    if (headsetStep && headset) completeStep('choose-headset', { ...as, value: headset })
+    completeStep('mgr-accessibility-conversation', as)
+    onDone()
+  }
+
+  return (
+    <Stack spacing={2}>
+      <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 1.5 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+          Have this conversation with {name} first
+        </Typography>
+        <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+          {conversationPrompts.map((p) => (
+            <Typography key={p} component="li" variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>
+              {p}
+            </Typography>
+          ))}
+        </Box>
+      </Box>
+
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+        Then record what you agreed
+      </Typography>
+
+      {kitStep && (
+        <>
+          <ChoiceGroup
+            label="Laptop spec"
+            options={specStep?.options ?? []}
+            value={spec}
+            onChange={setSpec}
+            hint={(v) => (v === suggestedLaptopSpec(journey.persona.jobFamily) ? `suggested for a ${journey.persona.role.toLowerCase()}` : undefined)}
+          />
+          <ChoiceGroup label="Laptop" options={kitStep.options ?? []} value={laptop} onChange={setLaptop} />
+        </>
+      )}
+      {headsetStep && <ChoiceGroup label="Headset" options={headsetStep.options ?? []} value={headset} onChange={setHeadset} />}
+
+      <Typography variant="caption" color="text.secondary">
+        This is saved as {name}’s own choice, and the laptop order will come to you to approve as usual. If they need something that isn’t listed, ask IT or Occupational Health to arrange it.
+      </Typography>
+      <Button variant="contained" disabled={!ready} onClick={record}>
+        We’ve talked it through
+      </Button>
+    </Stack>
+  )
+}
+
+function ChoiceGroup({
+  label,
+  options,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string
+  options: { value: string; label: string; detail?: string }[]
+  value?: string
+  onChange: (value: string) => void
+  hint?: (value: string) => string | undefined
+}) {
+  return (
+    <Stack spacing={1} role="radiogroup" aria-label={label}>
+      <Typography variant="overline" color="text.secondary">
+        {label}
+      </Typography>
+      {options.map((o) => {
+        const selected = value === o.value
+        const note = hint?.(o.value)
+        return (
+          <Card key={o.value} variant="outlined" sx={{ borderColor: selected ? 'primary.main' : undefined, borderWidth: selected ? 2 : 1 }}>
+            <CardActionArea onClick={() => onChange(o.value)} role="radio" aria-checked={selected}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.25 }}>
+                <Radio checked={selected} size="small" tabIndex={-1} />
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {o.label}
+                    {note && (
+                      <Typography component="span" variant="caption" color="text.secondary">
+                        {' '}
+                        · {note}
+                      </Typography>
+                    )}
+                  </Typography>
+                  {o.detail && (
+                    <Typography variant="caption" color="text.secondary">
+                      {o.detail}
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+            </CardActionArea>
+          </Card>
+        )
+      })}
     </Stack>
   )
 }

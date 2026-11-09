@@ -100,7 +100,7 @@ describe('unlocking ("earned, not withheld")', () => {
   })
 
   it('evaluates combined rules', () => {
-    const ctx = { daysToStart: 5, isCleared: () => true, isDone: () => false }
+    const ctx = { daysToStart: 5, isCleared: () => true, isDone: () => false, valueOf: () => undefined }
     expect(evaluate({ type: 'all', rules: [{ type: 'daysToStart', atMost: 7 }, { type: 'checksCleared', checks: 'all' }] }, ctx)).toBe(true)
     expect(evaluate({ type: 'any', rules: [{ type: 'stepDone', stepId: 'x' }, { type: 'daysSinceStart', atLeast: 0 }] }, ctx)).toBe(false)
   })
@@ -134,7 +134,7 @@ describe('next action and stages', () => {
     const next = journey('priya', '2026-11-09').nextAction
     expect(next?.owner).toBe('joiner')
     expect(next?.kind).not.toBe('content')
-    expect(next?.id).toBe('choose-kit')
+    expect(next?.id).toBe('accessibility-needs')
   })
 
   it('marks early stages done and Day 30 current for a joiner on Day 29', () => {

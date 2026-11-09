@@ -18,6 +18,12 @@ describe('Journey tab', () => {
     const user = userEvent.setup()
     renderApp('/journey')
 
+    await user.click(screen.getByText('Do you have any accessibility requirements?'))
+    const question = await screen.findByRole('dialog', { name: 'Do you have any accessibility requirements?' })
+    await user.click(within(question).getByRole('radio', { name: /No, I don’t need any adjustments/ }))
+    await user.click(within(question).getByRole('button', { name: 'Confirm choice' }))
+    await user.click(within(question).getByRole('button', { name: 'Close' }))
+
     await user.click(screen.getByText('Choose your laptop'))
     const sheet = await screen.findByRole('dialog', { name: 'Choose your laptop' })
     await user.click(within(sheet).getByRole('radio', { name: /Surface Laptop/ }))

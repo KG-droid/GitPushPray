@@ -62,6 +62,16 @@ const headsetOptions: ChoiceOption[] = [
   { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
 ]
 
+/** 'no' stays first: it is the default answer for seeded journeys that skip this question. */
+const accessibilityOptions: ChoiceOption[] = [
+  { value: 'no', label: 'No, I don’t need any adjustments', detail: 'You’ll choose your laptop and headset yourself. You can change your answer later.' },
+  {
+    value: 'yes',
+    label: 'Yes, I’d like to talk it through with my manager',
+    detail: 'Your manager will have a conversation with you and agree the right laptop and headset together.',
+  },
+]
+
 /** The laptop choice is due, and changes close, two weeks before Day 1 so IT has time to build it. */
 const laptopChangeDeadline = -14
 
@@ -133,6 +143,21 @@ export const stepCatalogue: StepDefinition[] = [
 
   // ── Unlock & choose ─────────────────────────────────────
   {
+    id: 'accessibility-needs',
+    stage: 'unlock',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'accessibility_new',
+    title: 'Do you have any accessibility requirements?',
+    body: 'This could be a disability, health condition or access need that affects the laptop, headset or other kit you can use. If it does, your manager will talk it through with you, rather than you picking from a list. Anything you share stays confidential.',
+    unlock: { type: 'always' },
+    dueOffsetDays: laptopChangeDeadline,
+    minutes: 1,
+    options: accessibilityOptions,
+    changeUntilOffsetDays: laptopChangeDeadline,
+    changeClosedHint: 'Your kit is being prepared. Speak to your manager or the IT service desk if this has changed.',
+  },
+  {
     id: 'choose-kit',
     stage: 'unlock',
     owner: 'joiner',
@@ -145,10 +170,12 @@ export const stepCatalogue: StepDefinition[] = [
       type: 'all',
       rules: [
         { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+        { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
         { type: 'stepDone', stepId: 'mgr-set-device-spec' },
       ],
     },
-    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work, and your manager has set your laptop spec.',
+    lockedHint:
+      'Unlocks once you’ve answered the accessibility question, we’ve confirmed your ID and right to work, and your manager has set your laptop spec. If you’ve asked for support, your manager will agree your laptop with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
     minutes: 2,
     options: laptopOptions,
@@ -164,8 +191,15 @@ export const stepCatalogue: StepDefinition[] = [
     icon: 'headset',
     title: 'Choose your headset',
     body: 'Pick the headset that suits how you work. It will be waiting for you with your laptop on Day 1.',
-    unlock: { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
-    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work.',
+    unlock: {
+      type: 'all',
+      rules: [
+        { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+        { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
+      ],
+    },
+    lockedHint:
+      'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree your headset with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
     minutes: 1,
     options: headsetOptions,
@@ -427,6 +461,19 @@ export const stepCatalogue: StepDefinition[] = [
     options: laptopSpecOptions,
     changeUntilOffsetDays: laptopChangeDeadline,
     changeClosedHint: 'The laptop is being prepared. Contact the IT service desk if it needs to change.',
+  },
+  {
+    id: 'mgr-accessibility-conversation',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'task',
+    icon: 'accessibility_new',
+    title: 'Talk through their accessibility needs',
+    body: 'Your joiner has asked to talk through adjustments before choosing their laptop and headset. Have the conversation with them, then record what you agreed.',
+    unlock: { type: 'always' },
+    visibleWhen: { stepId: 'accessibility-needs', value: 'yes' },
+    dueOffsetDays: -21,
+    minutes: 20,
   },
   {
     id: 'mgr-request-device',

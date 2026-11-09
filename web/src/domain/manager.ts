@@ -39,6 +39,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
   const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content')
   const kitLabel = laptopLabel(laptopOrder(journey))
   const equipment = journey.steps.find((s) => s.id === 'choose-equipment')
+  const headset = journey.steps.find((s) => s.id === 'choose-headset')
   const moved = journey.notices.find((n) => n.kind === 'start-date-moved')
 
   const status: JoinerStatus =
@@ -65,6 +66,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     joinerTotal: joinerSteps.length,
     sharedChoices: [
       ...(kitLabel ? [{ label: 'Laptop', value: kitLabel }] : []),
+      ...(headset?.state === 'done' ? [{ label: 'Headset', value: headset.options?.find((o) => o.value === headset.value)?.label ?? 'Chosen' }] : []),
       ...(equipment?.state === 'done' ? managerEquipmentSummary(equipment) : []),
     ],
     startDateMoved: moved && moved.kind === 'start-date-moved' ? { from: moved.from, to: moved.to } : undefined,

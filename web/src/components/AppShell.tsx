@@ -179,7 +179,8 @@ export function AppShell() {
         <Snackbar
           open={!!toast}
           autoHideDuration={3500}
-          onClose={clearToast}
+          // A click that sets a new toast would otherwise count as a click-away and dismiss it straight away.
+          onClose={(_, reason) => reason !== 'clickaway' && clearToast()}
           message={toast}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
           sx={{

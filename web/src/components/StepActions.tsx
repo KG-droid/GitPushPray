@@ -39,11 +39,15 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'primary.main' }}>
           <CheckCircleRounded fontSize="small" />
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {picked ? `You chose: ${picked}` : step.kind === 'content' ? 'Read' : 'Done'}
+            {picked ? `${step.doneBy === 'manager' ? 'Agreed with your manager' : 'You chose'}: ${picked}` : step.kind === 'content' ? 'Read' : 'Done'}
             {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
           </Typography>
         </Stack>
-        {step.canChange && step.changeUntil ? (
+        {step.doneBy === 'manager' && step.owner === 'joiner' ? (
+          <Typography variant="caption" color="text.secondary">
+            To change this, talk to your manager.
+          </Typography>
+        ) : step.canChange && step.changeUntil ? (
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Button
               variant="outlined"

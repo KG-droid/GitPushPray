@@ -35,8 +35,39 @@ describe('laptop spec and model', () => {
     expect(before?.state).toBe('locked')
     expect(before?.lockedHint).toMatch(/manager has set your laptop spec/)
 
-    const after = journey('priya', '2026-11-09').steps.find((s) => s.id === 'choose-kit')
+    const answered = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'no')]
+    const after = journey('priya', '2026-11-09', answered).steps.find((s) => s.id === 'choose-kit')
     expect(after?.state).toBe('available')
+  })
+
+  it('keeps the laptop and headset locked until the accessibility question is answered', () => {
+    const steps = journey('priya', '2026-11-09').steps
+    expect(steps.find((s) => s.id === 'choose-kit')?.state).toBe('locked')
+    expect(steps.find((s) => s.id === 'choose-headset')?.state).toBe('locked')
+  })
+
+  it('hands the laptop and headset to a manager conversation when the joiner asks for support', () => {
+    const yes = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'yes')]
+    const steps = journey('priya', '2026-11-09', yes).steps
+    expect(steps.find((s) => s.id === 'choose-kit')?.state).toBe('locked')
+    expect(steps.find((s) => s.id === 'choose-headset')?.state).toBe('locked')
+    expect(steps.find((s) => s.id === 'mgr-accessibility-conversation')?.state).toBe('available')
+
+    const no = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'no')]
+    expect(journey('priya', '2026-11-09', no).steps.find((s) => s.id === 'mgr-accessibility-conversation')).toBeUndefined()
+  })
+
+  it('records what the manager agreed as the joiner’s own choices', () => {
+    const agreed = [
+      ...seedEvents,
+      completed('priya', '2026-11-09', 'accessibility-needs', 'yes'),
+      event('priya', '2026-11-10', 'step_completed', { stepId: 'choose-kit', by: 'manager', value: 'surface-pro' }),
+      event('priya', '2026-11-10', 'step_completed', { stepId: 'choose-headset', by: 'manager', value: 'poly-voyager-focus-2' }),
+    ]
+    const j = journey('priya', '2026-11-10', agreed)
+    expect(j.steps.find((s) => s.id === 'choose-kit')).toMatchObject({ state: 'done', value: 'surface-pro', doneBy: 'manager' })
+    expect(j.steps.find((s) => s.id === 'choose-headset')).toMatchObject({ state: 'done', doneBy: 'manager' })
+    expect(j.steps.find((s) => s.id === 'mgr-request-device')?.state).toBe('available')
   })
 
   it('reads the spec the manager set and the model the joiner chose', () => {
