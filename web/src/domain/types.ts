@@ -175,6 +175,8 @@ export interface StepDefinition {
   /** The step is done on its own screen; journey views link there instead of showing the form */
   href?: string
   hrefLabel?: string
+  /** Reached from the Explore tab only: kept out of the journey stages and the "next step" on Today */
+  exploreOnly?: boolean
   /** Due date relative to the (current) start date. -14 = two weeks before Day 1 */
   dueOffsetDays?: number
   minutes?: number

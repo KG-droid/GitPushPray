@@ -124,7 +124,9 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     }
   })
 
-  const stages = buildStages(stepViews)
+  // Explore-only steps stay in `steps` so their own pages can use them, but aren't part of the journey.
+  const journeySteps = stepViews.filter((s) => !s.exploreOnly)
+  const stages = buildStages(journeySteps)
   const currentStage = stages.find((s) => s.status === 'current')?.id ?? 'day-30'
 
   return {
@@ -137,7 +139,7 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     vettingExpectedClearOn: checkViews.reduce((max, c) => (c.expectedClearOn > max ? c.expectedClearOn : max), today),
     stages,
     currentStage,
-    nextAction: pickNextAction(stepViews, 'joiner'),
+    nextAction: pickNextAction(journeySteps, 'joiner'),
     steps: stepViews,
     notices: buildNotices(persona, past, checkViews),
   }

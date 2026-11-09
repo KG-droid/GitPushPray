@@ -153,6 +153,7 @@ export const stepCatalogue: StepDefinition[] = [
     owner: 'joiner',
     kind: 'choice',
     icon: 'accessibility_new',
+    exploreOnly: true,
     title: 'Choose your equipment and assistive technology',
     body: 'A monitor or chair for working from home, or assistive technology if you have a health condition, disability or access need. Pick as many as you like. What you choose here goes to IT and Occupational Health, and your manager only sees that adjustments were requested, not which ones.',
     unlock: { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
