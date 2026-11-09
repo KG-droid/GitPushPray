@@ -7,6 +7,9 @@ import { pickedLabels } from '../domain/equipment'
 import type { StepView } from '../domain/journey'
 import { IconTile } from './IconTile'
 
+/** Lists show the gist; the step's own sheet has the full explanation. */
+const firstSentence = (text?: string) => text?.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? text
+
 /** One line in a stage: icon, title, and what state it's in. */
 export function StepRow({
   step,
@@ -30,7 +33,7 @@ export function StepRow({
     : step.state === 'done'
       ? pickedLabels(step) || (step.kind === 'content' ? 'Read' : 'Done')
       : step.state === 'locked'
-        ? step.lockedHint ?? 'Unlocks later'
+        ? step.lockedShort ?? firstSentence(step.lockedHint) ?? 'Unlocks later'
         : step.dueDate
           ? `${overdue ? 'Was due' : 'By'} ${formatShortDate(step.dueDate)}`
           : step.kind === 'content'

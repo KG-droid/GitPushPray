@@ -15,6 +15,8 @@ export interface DemoState {
   todayOverride: string | null
   /** Whose side of the app we're showing */
   role: DemoRole
+  /** The presenter's strip across the top is showing. Tucked away by default so the app looks like the product. */
+  barOpen?: boolean
 }
 
 export interface DemoContextValue extends DemoState {
@@ -33,6 +35,7 @@ export interface DemoContextValue extends DemoState {
   slipStartDate(days: number): void
   delayCheck(checkId: CheckId, days: number): void
   resetPersona(): void
+  setBarOpen(open: boolean): void
   panelOpen: boolean
   setPanelOpen(open: boolean): void
   /** Whether this phone is in a shared demo, and its code */

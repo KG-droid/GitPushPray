@@ -121,7 +121,8 @@ export type Nudge =
   | { kind: 'asked-for-you'; personaId: string; name: string; summary: string }
   | { kind: 'first-week'; personaId: string; name: string; startDate: string; daysToStart: number }
   | { kind: 'task-due'; personaId: string; name: string; task: StepView; overdue: boolean }
-  | { kind: 'gone-quiet'; personaId: string; name: string; quietDays: number; level: 'watch' | 'at-risk' }
+  /** Everyone who has gone quiet, in one nudge, quietest first. Opens the first of them. */
+  | { kind: 'gone-quiet'; personaId: string; names: string[]; quietDays: number }
   | { kind: 'date-moved'; personaId: string; name: string; to: string }
 
 /** The handful of things worth a manager's attention today, most important first. */
@@ -132,7 +133,6 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
     const name = persona.firstName
     // The joiner asked for their manager by name: always the first thing they see.
     if (v.askedForYou[0]) nudges.push({ kind: 'asked-for-you', personaId: persona.id, name, summary: v.askedForYou[0].summary })
-    if (v.quiet?.status === 'quiet') nudges.push({ kind: 'gone-quiet', personaId: persona.id, name, quietDays: v.quiet.quietDays, level: v.quiet.level })
     if (v.startDateMoved) nudges.push({ kind: 'date-moved', personaId: persona.id, name, to: v.startDateMoved.to })
     // Google's research: a just-in-time nudge in the days before Day 1 makes the biggest difference.
     if (daysToStart > 0 && daysToStart <= 7) nudges.push({ kind: 'first-week', personaId: persona.id, name, startDate, daysToStart })
@@ -140,6 +140,10 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
       nudges.push({ kind: 'task-due', personaId: persona.id, name, task, overdue: !!task.dueDate && task.dueDate < today })
     }
   }
+  const quiet = views
+    .flatMap((v) => (v.quiet?.status === 'quiet' ? [{ id: v.journey.persona.id, name: v.journey.persona.firstName, days: v.quiet.quietDays }] : []))
+    .sort((a, b) => b.days - a.days)
+  if (quiet.length) nudges.push({ kind: 'gone-quiet', personaId: quiet[0].id, names: quiet.map((q) => q.name), quietDays: quiet[0].days })
   const rank = { 'asked-for-you': 0, 'date-moved': 1, 'gone-quiet': 2, 'first-week': 3, 'task-due': 4 }
   return nudges.sort((a, b) => rank[a.kind] - rank[b.kind])
 }

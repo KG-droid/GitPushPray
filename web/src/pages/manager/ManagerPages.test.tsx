@@ -118,8 +118,8 @@ describe('Manager view: a joiner who has gone quiet', () => {
     const user = userEvent.setup()
     renderApp('/manager', { role: 'manager' })
 
-    expect(screen.getByText('Priya has gone quiet')).toBeInTheDocument()
-    await user.click(screen.getByText('Priya has gone quiet'))
+    // Two quiet joiners share one card, which opens the one who has been quiet longest.
+    await user.click(screen.getByText('Priya and Amara have gone quiet'))
     expect(screen.getByText(/may be at risk of not starting/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Send Priya a quick hello' }))

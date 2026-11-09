@@ -42,7 +42,7 @@ export function ManagerHomePage() {
           </Typography>
           <Box sx={cardGridSx}>
             {nudges.slice(0, 4).map((n, i) => (
-              <NudgeCard key={i} nudge={n} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
+              <NudgeCard key={i} nudge={n} highlight={i === 0} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
             ))}
           </Box>
         </Box>
@@ -98,15 +98,20 @@ export function ManagerHomePage() {
   )
 }
 
-function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
+const listNames = (names: string[]) => (names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`)
+
+function NudgeCard({ nudge, onOpen, highlight }: { nudge: Nudge; onOpen: () => void; highlight: boolean }) {
   const content =
     nudge.kind === 'asked-for-you'
       ? { icon: <ForumRounded color="secondary" />, title: `${nudge.name} asked for you`, body: nudge.summary }
       : nudge.kind === 'gone-quiet'
       ? {
           icon: <HourglassEmptyRounded color="warning" />,
-          title: `${nudge.name} has gone quiet`,
-          body: `No activity for ${nudge.quietDays} days. A quick hello makes a difference.`,
+          title: `${listNames(nudge.names)} ${nudge.names.length === 1 ? 'has' : 'have'} gone quiet`,
+          body:
+            nudge.names.length === 1
+              ? `No activity for ${nudge.quietDays} days. A quick hello makes a difference.`
+              : `No activity for a week or more. A quick hello to each makes a difference.`,
         }
       : nudge.kind === 'first-week'
       ? {
@@ -127,7 +132,7 @@ function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
           }
 
   return (
-    <Card sx={nudge.kind === 'first-week' || nudge.kind === 'asked-for-you' || nudge.kind === 'gone-quiet' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
+    <Card sx={highlight ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
       <CardActionArea onClick={onOpen}>
         <CardContent sx={{ display: 'flex', gap: 1.75, alignItems: 'center', py: 1.75 }}>
           <IconTile icon={content.icon} />

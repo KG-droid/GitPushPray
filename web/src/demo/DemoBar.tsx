@@ -1,4 +1,5 @@
-import { Box, Button, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Box, Button, IconButton, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import ExpandLessRounded from '@mui/icons-material/ExpandLessRounded'
 import RestartAltRounded from '@mui/icons-material/RestartAltRounded'
 import { useNavigate } from 'react-router-dom'
 import { repository } from '../data/repository'
@@ -9,13 +10,19 @@ export const DEMO_BAR_HEIGHT = 44
 const routeFor = (role: DemoRole) =>
   role === 'manager' ? '/manager' : role === 'buddy' ? '/buddy' : role === 'admin' ? '/admin' : '/today'
 
-/** Always-visible red strip for presenters: switch who we're viewing as, and reset their data to redo steps. */
+/**
+ * Presenter's strip: switch who we're viewing as, and reset their data to redo steps. Hidden until the
+ * "Demo" pill in the header is tapped, so anyone opening the link sees the product first.
+ */
 export function DemoBar() {
   const demo = useDemo()
   const navigate = useNavigate()
   const { persona } = demo.journey
   const hasBuddy = !!persona.buddyId
   const personas = repository.listPersonas().filter((p) => !p.hiddenFromSwitcher || p.id === persona.id)
+
+  // Tucked away: keep only the space a phone's status bar needs.
+  if (!demo.barOpen) return <Box sx={{ position: 'sticky', top: 0, height: 'env(safe-area-inset-top)', bgcolor: 'background.default' }} />
 
   return (
     <Box
@@ -97,6 +104,9 @@ export function DemoBar() {
         >
           Reset {persona.firstName}
         </Button>
+        <IconButton size="small" aria-label="Hide demo controls" onClick={() => demo.setBarOpen(false)} sx={{ color: '#fff' }}>
+          <ExpandLessRounded />
+        </IconButton>
       </Stack>
     </Box>
   )

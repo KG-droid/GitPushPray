@@ -309,6 +309,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setPersona: (personaId) => setState((s) => ({ ...s, personaId })),
     setToday: (value) => (share.mode === 'shared' ? repository.setSharedToday(value) : setState((s) => ({ ...s, todayOverride: value }))),
     setRole: (role) => setState((s) => ({ ...s, role })),
+    setBarOpen: (barOpen) => setState((s) => ({ ...s, barOpen })),
     journeyFor,
     completeStep,
     catchUp,

@@ -22,9 +22,9 @@ import type {
 
 export const STAGES: { id: StageId; title: string; subtitle: string }[] = [
   { id: 'offer', title: 'Offer', subtitle: 'Welcome aboard' },
-  { id: 'unlock', title: 'Unlock & choose', subtitle: 'Get set up before Day 1' },
+  { id: 'unlock', title: 'Get set up', subtitle: 'Your choices and checks before Day 1' },
   { id: 'meet', title: 'Meet your people', subtitle: 'Your manager, buddy and team' },
-  { id: 'manager-ready', title: 'Manager ready', subtitle: 'Everything waiting for you' },
+  { id: 'manager-ready', title: 'Your team gets ready', subtitle: 'What they’re preparing for you' },
   { id: 'week-one', title: 'Day 1 to Week 1', subtitle: 'Find your feet' },
   { id: 'day-30', title: 'Day 30', subtitle: 'Connected and confident' },
 ]

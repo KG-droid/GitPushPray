@@ -54,12 +54,6 @@ export function ExplorePage() {
           body={`Where you sit in ${persona.team}, from your team up to the Group Chief Executive`}
           onClick={() => navigate('/explore/organisation')}
         />
-        <HubCard
-          icon={<MenuBookRounded color="primary" />}
-          title="Jargon buster"
-          body="SM&CR, DBS, HR Direct and the rest: what the acronyms mean in plain English"
-          onClick={() => navigate('/explore/glossary')}
-        />
       </Group>
 
       {persona.isPeopleManager && (
@@ -104,7 +98,13 @@ export function ExplorePage() {
         />
       </Group>
 
-      <Group title="Help us improve">
+      <Group title="More">
+        <HubCard
+          icon={<MenuBookRounded color="primary" />}
+          title="Jargon buster"
+          body="SM&CR, DBS, HR Direct and the rest: what the acronyms mean in plain English"
+          onClick={() => navigate('/explore/glossary')}
+        />
         <HubCard
           icon={<RateReviewRounded color="primary" />}
           title="Your feedback"

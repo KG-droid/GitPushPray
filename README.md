@@ -70,7 +70,7 @@ The API key is read only on the server, from `.env` locally or the `ANTHROPIC_AP
 
 ## Presenting it
 
-Long-press the logo (or press **Shift+D**) to open the demo controls:
+Tap the small **Demo** pill in the header for the quick switcher strip (role, persona, reset), which stays hidden until asked for so the app looks like the product. Long-press the logo (or press **Shift+D**) to open the full demo controls:
 
 - **share the demo** with a second phone (scan a QR code) so the manager and the joiner are on different phones and see each other's actions live, including time travel
 - switch between joiner, manager, buddy and admin views, and between personas
