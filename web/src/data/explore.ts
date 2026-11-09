@@ -254,6 +254,110 @@ export const reportingLine: Record<string, (keyof typeof leaders)[]> = {
   sam: ['ceo', 'cdo'],
 }
 
+// ── Line manager responsibilities ───────────────────────
+
+export interface ManagerResponsibility {
+  id: string
+  title: string
+  icon: string
+  summary: string
+  points: string[]
+}
+
+/** What LBG expects of a line manager, in practical terms. Illustrative wording for the demo. */
+export const managerResponsibilities: ManagerResponsibility[] = [
+  {
+    id: 'performance',
+    title: 'Set clear expectations and manage performance',
+    icon: 'flag',
+    summary: 'Agree what good looks like, check in often, and deal with concerns early.',
+    points: [
+      'Agree meaningful performance goals and actions with colleagues in Workday.',
+      'Hold regular, open Check-ins: at least quarterly, with extra conversations where needed.',
+      'Assess both what colleagues deliver and how they deliver it, using evidence rather than reputation or visibility.',
+      'Address performance concerns rather than letting them drift, with the right support and development.',
+    ],
+  },
+  {
+    id: 'development',
+    title: 'Develop colleagues and build capability',
+    icon: 'school',
+    summary: 'Know your people’s skills and ambitions, and help them grow.',
+    points: [
+      'Understand colleagues’ skills and career aspirations.',
+      'Agree development goals and encourage ongoing learning.',
+      'Give constructive feedback, recognition and coaching.',
+      'Create opportunities for colleagues to grow their skills and contribution. Development goals and active learning are part of how people leaders are measured, alongside performance objectives.',
+    ],
+  },
+  {
+    id: 'wellbeing',
+    title: 'Look after wellbeing',
+    icon: 'favorite',
+    summary: 'Ask how people really are, not just how the work is going.',
+    points: [
+      'Have genuine conversations about how colleagues are doing. Check-ins aren’t only a performance process.',
+      'Recognise when health, absence or disability may affect someone at work, and point them to LBG’s wellbeing support.',
+    ],
+  },
+  {
+    id: 'adjustments',
+    title: 'Create an inclusive environment and support workplace adjustments',
+    icon: 'accessibility_new',
+    summary: 'Understand individual needs, and make adjustments happen.',
+    points: [
+      'Understand individual needs rather than making assumptions.',
+      'Talk with the colleague about what helps them perform at their best.',
+      'Put reasonable adjustments in place directly where appropriate, and involve specialist support where needed.',
+      'If a colleague has a Workplace Adjustment Passport, familiarise yourself with it, keep it up to date, and check it has been reviewed within the last quarter.',
+    ],
+  },
+  {
+    id: 'fairness',
+    title: 'Lead fairly and inclusively',
+    icon: 'groups',
+    summary: 'Decide on evidence, watch for bias, and make space for different views.',
+    points: [
+      'Make fair, evidence-based decisions and stay aware of potential bias.',
+      'Seek different perspectives and create an environment where colleagues feel included.',
+      'Take individual circumstances and adjustments into account when assessing performance. The scoring guidance calls out disability adjustments, pregnancy, maternity and absence as circumstances that may need to be considered.',
+    ],
+  },
+  {
+    id: 'lifecycle',
+    title: 'Manage the colleague lifecycle',
+    icon: 'event',
+    summary: 'From recruitment to exit, you own or take part in most people processes.',
+    points: [
+      'Recruitment and onboarding, including the joining journey you’re seeing now from the other side.',
+      'Changes in working arrangements, performance and reward, absence, and organisational change.',
+      'Colleague exits: agree next steps, review holiday entitlement, and make sure any final salary adjustments are completed.',
+    ],
+  },
+  {
+    id: 'flexible',
+    title: 'Support flexible ways of working',
+    icon: 'home',
+    summary: 'Find what works for the person, the role and the team, and revisit it.',
+    points: [
+      'Work with colleagues to find an arrangement that suits the individual, the role and the team.',
+      'Review arrangements periodically. Flexibility isn’t a one-off decision.',
+      'Balance what colleagues need with what is workable for the team and the business.',
+    ],
+  },
+  {
+    id: 'values',
+    title: 'Role-model LBG values, risk and controls',
+    icon: 'verified',
+    summary: 'Your team takes its lead from how you behave.',
+    points: [
+      'A Culture & Values goal is automatically added for people leaders in Workday, because managers shape the culture and behaviour of their teams.',
+      'LBG’s values are meant to guide day-to-day decisions, not sit in a separate exercise.',
+      'Follow, and visibly follow, the risk and control expectations of your role.',
+    ],
+  },
+]
+
 // ── Benefits & reward ───────────────────────────────────
 
 /** Synthetic annual salaries, used only for the joiner's own reward summary (never shown to anyone else). */

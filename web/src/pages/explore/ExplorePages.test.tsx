@@ -87,6 +87,23 @@ describe('Explore tab', () => {
   })
 })
 
+describe('Line manager section', () => {
+  it('appears in Explore for a joining people manager and lists the responsibilities', async () => {
+    const user = userEvent.setup()
+    renderApp('/explore', { personaId: 'nia', today: '2026-11-09' })
+    expect(screen.getByRole('region', { name: 'Leading a team' })).toBeInTheDocument()
+    await user.click(screen.getByText('Being a line manager'))
+    const list = await screen.findByRole('list', { name: 'Line manager responsibilities' })
+    expect(within(list).getAllByRole('heading', { level: 2 })).toHaveLength(8)
+    expect(within(list).getByText(/at least quarterly/)).toBeInTheDocument()
+  })
+
+  it('is not offered to joiners who are not people managers', () => {
+    renderApp('/explore')
+    expect(screen.queryByRole('region', { name: 'Leading a team' })).not.toBeInTheDocument()
+  })
+})
+
 describe('Accessibility and inclusion', () => {
   it('asks the adjustments question and opens the equipment step on Yes', async () => {
     const user = userEvent.setup()

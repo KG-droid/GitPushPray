@@ -8,6 +8,7 @@ import RateReviewRounded from '@mui/icons-material/RateReviewRounded'
 import AccessibilityNewRounded from '@mui/icons-material/AccessibilityNewRounded'
 import PublicRounded from '@mui/icons-material/PublicRounded'
 import StarsRounded from '@mui/icons-material/StarsRounded'
+import SupervisorAccountRounded from '@mui/icons-material/SupervisorAccountRounded'
 import { useNavigate } from 'react-router-dom'
 import { IconTile } from '../../components/IconTile'
 import { repository } from '../../data/repository'
@@ -53,6 +54,17 @@ export function ExplorePage() {
           onClick={() => navigate('/explore/organisation')}
         />
       </Group>
+
+      {persona.isPeopleManager && (
+        <Group title="Leading a team">
+          <HubCard
+            icon={<SupervisorAccountRounded color="primary" />}
+            title="Being a line manager"
+            body="Eight responsibilities LBG expects of people leaders, from Check-ins to wellbeing and adjustments"
+            onClick={() => navigate('/explore/line-manager')}
+          />
+        </Group>
+      )}
 
       <Group title="Your benefits">
         <HubCard
