@@ -37,7 +37,7 @@ function suggestions(j: JoinerContext): string[] {
     'When will I get paid?',
     j.daysToStart > 0 ? (j.isSmcr ? 'Why is my regulatory reference taking so long?' : 'Why are my references taking so long?') : 'What training do I need to do?',
     'I’m a bit worried something might come up in my checks',
-    'What’s my manager’s salary?',
+    'Who will be my buddy in the first few weeks?',
   ]
   return list
 }
