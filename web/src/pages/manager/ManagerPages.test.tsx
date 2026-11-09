@@ -74,3 +74,22 @@ describe('Manager view', () => {
     expect(within(pack).getByText(/Your first 3 months, from Daniel/)).toBeInTheDocument()
   })
 })
+
+describe('Manager access request', () => {
+  it('shows team access, copies a teammate, and records the request', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/amara', { role: 'manager', today: '2026-12-20' })
+
+    await user.click(screen.getByText('Request system access'))
+    const sheet = await screen.findByRole('dialog', { name: 'Request system access' })
+    expect(within(sheet).getByRole('table', { name: 'Team access matrix' })).toBeInTheDocument()
+    expect(within(sheet).getByText(/Backstage: Service catalogue, editor/)).toBeInTheDocument()
+
+    await user.click(within(sheet).getByRole('button', { name: 'Same as Hannah' }))
+    expect(within(sheet).getByRole('button', { name: 'Request access (6)' })).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Request access (6)' }))
+
+    await user.click(screen.getByText('Request system access'))
+    expect(await screen.findByText('6 access items requested')).toBeInTheDocument()
+  })
+})
