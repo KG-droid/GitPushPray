@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { repository } from '../data/repository'
 import { addDays, formatShortDate } from '../domain/dates'
 import { planCatchUp } from './catchUp'
+import { SharePanel } from './SharePanel'
 import { useDemo, type DemoRole } from './useDemo'
 
 /** Presenter-only controls. Opened by long-pressing the logo. */
@@ -167,6 +168,10 @@ export function DemoPanel() {
             Reset {persona.firstName}’s journey
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 2 }} />
+
+        <SharePanel />
       </Box>
     </Drawer>
   )

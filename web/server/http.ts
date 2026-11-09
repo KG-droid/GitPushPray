@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AskRequest, HandoverRequest, InsightsRequest } from '../src/assistant/protocol.ts'
 import { ask, recommendFromInsights, summariseHandover, type AssistantConfig } from './ask.ts'
 import type { Guard } from './guard.ts'
+import { defaultSessions, type SessionStore } from './sessions.ts'
 
 /**
  * Node HTTP handler for /api/ask, /api/handover and /api/insights. The Vite dev server mounts this locally
@@ -9,8 +10,15 @@ import type { Guard } from './guard.ts'
  *
  * With a guard, only requests it allows reach live Claude; everyone else gets the scripted offline answers.
  */
-export async function handleApi(req: IncomingMessage, res: ServerResponse, baseConfig: AssistantConfig, guard?: Guard): Promise<boolean> {
+export async function handleApi(
+  req: IncomingMessage,
+  res: ServerResponse,
+  baseConfig: AssistantConfig,
+  guard?: Guard,
+  sessions: SessionStore = defaultSessions,
+): Promise<boolean> {
   const path = (req.url ?? '').split('?')[0]
+  if (path === '/api/session' || path.startsWith('/api/session/')) return handleSession(req, res, path, sessions)
   if (path !== '/api/ask' && path !== '/api/handover' && path !== '/api/insights') return false
 
   if (req.method !== 'POST') {
@@ -55,6 +63,50 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse, baseC
   }
   res.end()
   return true
+}
+
+/** Sends a JSON reply. Returns true, so handlers can `return json(...)` to say the request was handled. */
+const json = (res: ServerResponse, status: number, body: unknown): true => {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('Cache-Control', 'no-store')
+  res.end(JSON.stringify(body))
+  return true
+}
+
+/** Shared demo sessions: POST /api/session, then GET or POST /api/session/<id>/ops. */
+async function handleSession(req: IncomingMessage, res: ServerResponse, path: string, sessions: SessionStore): Promise<boolean> {
+  if (path === '/api/session') {
+    if (req.method !== 'POST') return json(res, 405, { error: 'method' })
+    return json(res, 200, { id: sessions.create() })
+  }
+
+  const match = /^\/api\/session\/([^/]+)\/ops$/.exec(path)
+  if (!match) return json(res, 404, { error: 'not found' })
+  const id = match[1]
+
+  if (req.method === 'GET') {
+    const since = Number(new URL(req.url ?? '', 'http://x').searchParams.get('since')) || 0
+    const result = sessions.ops(id, Math.max(0, since))
+    return result ? json(res, 200, result) : json(res, 404, { error: 'unknown session' })
+  }
+
+  if (req.method === 'POST') {
+    let body: { ops?: unknown }
+    try {
+      body = JSON.parse(await readBody(req, 64 * 1024)) as { ops?: unknown }
+    } catch {
+      return json(res, 400, { error: 'bad body' })
+    }
+    if (!Array.isArray(body.ops) || body.ops.length > 100) return json(res, 400, { error: 'bad ops' })
+    const result = sessions.append(id, body.ops)
+    if (!result) return json(res, 404, { error: 'unknown session' })
+    if (result === 'invalid') return json(res, 400, { error: 'bad ops' })
+    if (result === 'full') return json(res, 413, { error: 'session is full' })
+    return json(res, 200, result)
+  }
+
+  return json(res, 405, { error: 'method' })
 }
 
 function readBody(req: IncomingMessage, limit: number): Promise<string> {

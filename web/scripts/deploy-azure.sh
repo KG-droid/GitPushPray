@@ -43,6 +43,9 @@ if ! az webapp show -g "$RG" -n "$APP" -o none 2>/dev/null; then
     --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false NODE_ENV=production
 fi
 
+# Shared demos keep their data under /home, which survives restarts and redeploys. Safe to set every time.
+az webapp config appsettings set -g "$RG" -n "$APP" --settings DATA_DIR=/home/data -o none
+
 # Optional: copy the Claude key from web/.env into App Settings without printing it.
 if [[ "${SET_KEY:-0}" == "1" ]]; then
   KEY="$(grep -E '^ANTHROPIC_API_KEY=' .env | head -1 | cut -d= -f2-)"

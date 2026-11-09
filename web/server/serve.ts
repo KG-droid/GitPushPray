@@ -4,6 +4,7 @@ import { extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createGuard } from './guard.ts'
 import { handleApi } from './http.ts'
+import { createSessionStore } from './sessions.ts'
 
 /**
  * Production server: serves the built PWA and the /api endpoints from one process.
@@ -25,6 +26,9 @@ const guard = createGuard({
   dailyTotal: Number(process.env.DAILY_LIVE_LIMIT) || undefined,
 })
 
+// Shared demo sessions survive restarts if DATA_DIR points somewhere that persists (/home/data on App Service).
+const sessions = createSessionStore({ file: process.env.DATA_DIR ? join(process.env.DATA_DIR, 'sessions.json') : undefined })
+
 const types: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -44,7 +48,7 @@ const server = createServer(async (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY')
 
   try {
-    if (await handleApi(req, res, config, guard)) return
+    if (await handleApi(req, res, config, guard, sessions)) return
   } catch (error) {
     console.error('[api]', error)
     if (!res.headersSent) res.statusCode = 500

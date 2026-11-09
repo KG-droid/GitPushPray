@@ -18,14 +18,13 @@ import type {
   StepCompletedPayload,
 } from '../domain/types'
 import { planCatchUp } from './catchUp'
-import { DemoContext, type ChatEntry, type DemoContextValue, type DemoState } from './useDemo'
+import { DEMO_STATE_KEY, DemoContext, type ChatEntry, type DemoContextValue, type DemoState } from './useDemo'
 
-const STATE_KEY = 'lbg-joiner:demo:v1'
 const DEFAULT_STATE: DemoState = { personaId: 'priya', todayOverride: null, role: 'joiner' }
 
 function loadState(): DemoState {
   try {
-    const raw = localStorage.getItem(STATE_KEY)
+    const raw = localStorage.getItem(DEMO_STATE_KEY)
     return raw ? { ...DEFAULT_STATE, ...(JSON.parse(raw) as DemoState) } : DEFAULT_STATE
   } catch {
     return DEFAULT_STATE
@@ -46,9 +45,12 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const eventsVersion = useSyncExternalStore(subscribe, getVersion)
 
-  useEffect(() => localStorage.setItem(STATE_KEY, JSON.stringify(state)), [state])
+  useEffect(() => localStorage.setItem(DEMO_STATE_KEY, JSON.stringify(state)), [state])
 
-  const today = state.todayOverride ?? toIsoDate(new Date())
+  // In a shared demo the date is shared too, so a manager's action on one phone lands on the same day for the joiner on another.
+  const share = repository.shareStatus()
+  const todayOverride = share.mode === 'shared' ? (repository.sharedToday() ?? null) : state.todayOverride
+  const today = todayOverride ?? toIsoDate(new Date())
   const persona = repository.getPersona(state.personaId) ?? repository.listPersonas()[0]
 
   /** Builds any persona's journey on the demo date; cached until events or the date change. */
@@ -290,10 +292,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const value: DemoContextValue = {
     ...state,
+    todayOverride,
     today,
     journey,
     setPersona: (personaId) => setState((s) => ({ ...s, personaId })),
-    setToday: (todayOverride) => setState((s) => ({ ...s, todayOverride })),
+    setToday: (value) => (share.mode === 'shared' ? repository.setSharedToday(value) : setState((s) => ({ ...s, todayOverride: value }))),
     setRole: (role) => setState((s) => ({ ...s, role })),
     journeyFor,
     completeStep,
@@ -303,6 +306,14 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     resetPersona: () => repository.reset(persona.id),
     panelOpen,
     setPanelOpen,
+    share,
+    startSharing: () => repository.startSharing(state.todayOverride),
+    stopSharing: () => {
+      // Keep the date that was on screen when going back to a private demo.
+      const keep = repository.sharedToday() ?? null
+      repository.stopSharing()
+      setState((s) => ({ ...s, todayOverride: keep }))
+    },
     toast,
     clearToast: () => setToast(null),
     chats,

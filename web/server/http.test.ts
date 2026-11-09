@@ -62,3 +62,29 @@ describe('API guard', () => {
     expect(((await res.json()) as { mode: string }).mode).toBe('offline')
   })
 })
+
+describe('shared demo routes', () => {
+  it('creates a session, takes actions and hands them to another phone', async () => {
+    const url = await start({})
+    const { id } = (await (await fetch(`${url}/api/session`, { method: 'POST' })).json()) as { id: string }
+
+    const post = await fetch(`${url}/api/session/${id}/ops`, {
+      method: 'POST',
+      body: JSON.stringify({ ops: [{ oid: 'x1', type: 'today', value: '2026-12-07' }] }),
+    })
+    expect(await post.json()).toMatchObject({ seq: 1, ops: [{ seq: 1, oid: 'x1', value: '2026-12-07' }] })
+
+    const read = await (await fetch(`${url}/api/session/${id}/ops?since=0`)).json()
+    expect(read).toMatchObject({ seq: 1, ops: [{ oid: 'x1' }] })
+    expect(await (await fetch(`${url}/api/session/${id}/ops?since=1`)).json()).toMatchObject({ ops: [] })
+  })
+
+  it('says 404 for a session that does not exist and 400 for rubbish', async () => {
+    const url = await start({})
+    expect((await fetch(`${url}/api/session/abcdefgh/ops`)).status).toBe(404)
+    const { id } = (await (await fetch(`${url}/api/session`, { method: 'POST' })).json()) as { id: string }
+    const bad = await fetch(`${url}/api/session/${id}/ops`, { method: 'POST', body: JSON.stringify({ ops: [{ nope: 1 }] }) })
+    expect(bad.status).toBe(400)
+    expect((await fetch(`${url}/api/session`)).status).toBe(405)
+  })
+})

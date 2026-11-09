@@ -1,9 +1,13 @@
 import { createContext, useContext } from 'react'
+import type { ShareStatus } from '../data/repository'
 import type { JourneyView } from '../domain/journey'
 import type { CheckInMilestone } from '../domain/feedback'
 import type { CheckId, HandoverSentPayload, MeetupKind, Owner } from '../domain/types'
 
 export type DemoRole = 'joiner' | 'manager' | 'buddy' | 'admin'
+
+/** Where this phone keeps who it is viewing as (the persona and role are per phone; the date and data can be shared). */
+export const DEMO_STATE_KEY = 'lbg-joiner:demo:v1'
 
 export interface DemoState {
   personaId: string
@@ -31,6 +35,11 @@ export interface DemoContextValue extends DemoState {
   resetPersona(): void
   panelOpen: boolean
   setPanelOpen(open: boolean): void
+  /** Whether this phone is in a shared demo, and its code */
+  share: ShareStatus
+  /** Let other phones follow this demo. Resolves to the demo's code. */
+  startSharing(): Promise<string>
+  stopSharing(): void
   /** Feedback message after an action, shown app-wide */
   toast: string | null
   clearToast(): void

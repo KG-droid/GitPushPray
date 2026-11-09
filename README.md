@@ -42,7 +42,7 @@ The research behind these choices is in [docs/market-research.md](docs/market-re
 | The journey engine, unlock rules, date reflow and manager/buddy logic (unit tested) | All people, personas, check results and policies |
 | The assistant: Claude answers from the policy documents, with citations and handover (when a key is configured) | Vetting, device ordering, system access, badges and payroll: nothing is connected to a real system |
 | Check-in answers, handovers and meetups recorded as events and reflected in the other views | Chat replies from managers and buddies (scripted) |
-| The PWA, served from Azure App Service | Storage: events live in the browser's `localStorage`, so views share state only on one device |
+| The PWA, served from Azure App Service | Storage: each phone keeps its own demo in the browser. A presenter can share a demo so other phones follow it live, but there is no database or real accounts |
 
 Without a Claude key the assistant uses scripted answers and shows an **Offline mode** label, so the demo never breaks. On the live site, Claude is also limited to people with the demo link, and rate limited, so the key can't be used by strangers (see [docs/azure-deployment.md](docs/azure-deployment.md)).
 
@@ -72,6 +72,7 @@ The API key is read only on the server, from `.env` locally or the `ANTHROPIC_AP
 
 Long-press the logo (or press **Shift+D**) to open the demo controls:
 
+- **share the demo** with a second phone (scan a QR code) so the manager and the joiner are on different phones and see each other's actions live, including time travel
 - switch between joiner, manager, buddy and admin views, and between personas
 - time travel to Offer accepted, 2 weeks to go, Day 1, end of week 1 and Day 30
 - tap **Catch up to this date** after a time jump to mark everything due by then as done (the check-ins are left for you to do live)
