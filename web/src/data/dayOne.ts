@@ -109,3 +109,121 @@ export const siteTravel: Partial<Record<SiteId, SiteTravel>> = {
     general: [],
   },
 }
+
+// ── Desk booking, journey planning and wayfinding: example data for the demo ──
+
+export interface DeskOption {
+  id: string
+  label: string
+  note: string
+}
+
+/** The desk already held next to the buddy or manager, plus two example alternatives. Only hybrid office workers book desks. */
+export function deskOptions(persona: Persona, l: DayOneLogistics): DeskOption[] {
+  if (persona.workPattern !== 'hybrid' || !l.desk) return []
+  const floor = /^Floor \d+/.exec(l.desk)?.[0] ?? 'Same floor'
+  return [
+    { id: 'near', label: l.desk, note: `Next to ${l.deskNextTo === 'buddy' ? '{buddy}, your buddy' : '{manager}, your manager'}. Already held for you.` },
+    { id: 'window', label: `${floor}, window desk W4`, note: 'Natural light, about a minute’s walk from your team.' },
+    { id: 'quiet', label: `${floor}, quiet zone desk Q2`, note: 'A low-noise area with no calls, if busy spaces are tiring.' },
+  ]
+}
+
+export interface TravelOption {
+  id: string
+  mode: string
+  /** The last leg, from where this mode drops you to the front door */
+  route: string
+  /** Minutes for that last leg */
+  minutes: number
+  /** Where the minutes are counted from, e.g. "Leeds station" */
+  from: string
+  tip?: string
+}
+
+const train = (from: string, minutes: number, route: string, tip?: string): TravelOption => ({ id: 'train', mode: 'Train', from, minutes, route, tip })
+const bus = (from: string, minutes: number, route: string, tip?: string): TravelOption => ({ id: 'bus', mode: 'Bus', from, minutes, route, tip })
+const cycle = (minutes: number, route: string, tip?: string): TravelOption => ({ id: 'cycle', mode: 'Cycle', from: 'the bike store', minutes, route, tip })
+const car = (from: string, minutes: number, route: string, tip?: string): TravelOption => ({ id: 'car', mode: 'Car', from, minutes, route, tip })
+
+/** Example last-leg journeys per site. Made up for the demo: not real timetables, routes or prices. */
+export const travelOptions: Partial<Record<SiteId, TravelOption[]>> = {
+  leeds: [
+    train('Leeds station', 10, 'Leave by the south entrance, follow Whitehall Road and turn right into Wellington Place.', 'A railcard-style season ticket loan is in your benefits.'),
+    bus('the Wellington Street stop', 4, 'Most city-centre buses stop on Wellington Street. Cross at the lights and walk through the square.'),
+    cycle(3, 'Lock up in the secure bike store at the back of the building, then use the showers and lockers on the ground floor.', 'Bring your own lock for the locker on Day 1.'),
+    car('the Whitehall Road car park', 8, 'There is no on-site parking for new joiners. Park at Whitehall Road and walk along the river path.', 'Example day rate: £12.'),
+  ],
+  london: [
+    train('St Paul’s station', 6, 'Take exit 2, walk up St Martin’s Le Grand and turn right into Gresham Street.'),
+    bus('the Cheapside stop', 5, 'Get off at Cheapside, walk north up Wood Street and the entrance is on the corner.'),
+    cycle(3, 'Use the ramp to the secure underground bike store, then the lift up to reception.'),
+  ],
+  cardiff: [
+    train('Cardiff Central', 15, 'Leave by the front entrance, cross Central Square and follow the signs towards the bay.'),
+    bus('the stop outside the centre', 2, 'The stop is right outside. Shift buses run from the city centre every 20 minutes.'),
+    car('the staff car park', 3, 'Use the visitor bay on Day 1. Your manager will sort a permit in your first week.'),
+  ],
+  birmingham: [
+    train('New Street station', 8, 'Leave by the Stephenson Street exit and walk up towards Colmore Row.'),
+    bus('the Colmore Row stop', 3, 'Most city buses stop on Colmore Row, a few doors from the branch.'),
+    car('the Snow Hill car park', 6, 'There is no parking at the branch. Snow Hill is the nearest car park.', 'Example day rate: £9.'),
+  ],
+  bristol: [
+    train('Temple Meads', 20, 'Walk along the harbour path, or take the harbour ferry to the Harbourside stop.'),
+    bus('the Harbourside stop', 4, 'Buses from Temple Meads stop at Harbourside. Walk across the square to reception.'),
+    cycle(2, 'Bike racks are by the main entrance, with lockers inside on the ground floor.'),
+  ],
+}
+
+/** e.g. 09:00 minus 15 minutes = 08:45 */
+export function minutesBefore(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number)
+  const total = (((h * 60 + m - minutes) % 1440) + 1440) % 1440
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+export interface Wayfinding {
+  /** From the front door to the desk, in order */
+  steps: string[]
+  /** Useful places near the desk */
+  nearby: { place: string; where: string }[]
+}
+
+/** Example directions inside the building. `{buddy}` and `{manager}` are replaced with first names. */
+export function wayfinding(persona: Persona, l: DayOneLogistics, desk?: string): Wayfinding | undefined {
+  if (persona.workPattern === 'remote') return undefined
+  const meeter = l.meetWho === 'buddy' ? '{buddy}' : '{manager}'
+  const floor = /Floor (\d+)/.exec(desk ?? '')?.[1]
+  if (persona.workPattern === 'branch') {
+    return {
+      steps: [
+        `Meet ${meeter} at the front door. The staff entrance is round the side.`,
+        'Sign the visitor book in the back office and collect your pass.',
+        'Lockers are on the left as you go in: leave your coat and bag here.',
+        `Your desk is in the back office, beside the counter${l.deskNextTo === 'buddy' ? ', next to {buddy}' : ''}.`,
+      ],
+      nearby: [
+        { place: 'Kitchen and break room', where: 'Upstairs, first door on the right' },
+        { place: 'Toilets', where: 'Upstairs, end of the corridor' },
+        { place: 'First aid kit and fire exit', where: 'By the back office door' },
+      ],
+    }
+  }
+  return {
+    steps: [
+      `Go in by the main entrance. Reception is straight ahead, and ${meeter} will be waiting there.`,
+      'Show your photo ID at reception to collect your building pass.',
+      'Tap your pass at the gates. The lifts are just beyond them on the right.',
+      floor ? `Take the lift to floor ${floor} and turn left out of the lift lobby.` : `${meeter} will walk you to your team’s area.`,
+      desk ? `Your desk is ${desk.replace(/^Floor \d+, /, '')}. Desk numbers are on the end of each row.` : 'Your seat will be pointed out when you arrive.',
+    ],
+    nearby: [
+      { place: 'Kitchen and free tea and coffee', where: 'Opposite the lifts on your floor' },
+      { place: 'Toilets and accessible toilet', where: 'Either side of the lift lobby' },
+      { place: 'Quiet room and prayer room', where: 'Floor 1, signposted from the lifts' },
+      { place: 'Lockers', where: 'By the stairs on your floor' },
+      { place: 'IT help desk', where: 'Ground floor, next to reception' },
+    ],
+  }
+}

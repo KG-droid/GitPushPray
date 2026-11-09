@@ -139,3 +139,41 @@ export const teammateAccess: Record<string, string[]> = {
   'tm-rhys-2': [...accessProfiles['contact-centre'][0].itemIds, 'quality'],
   'tm-rhys-3': accessProfiles['contact-centre'][0].itemIds,
 }
+
+/**
+ * Each system is run by a different team with its own approval route. The manager asks once and the
+ * request is split into one ticket per owner. Owners and lead times here are illustrative.
+ */
+export interface AccessRoute {
+  /** Who approves and sets it up */
+  owner: string
+  /** How the request reaches them, in plain English */
+  how: string
+  /** Calendar days from the request until the owner has approved it */
+  approveDays: number
+  /** Calendar days from the request until it is set up */
+  readyDays: number
+  /** Follows the role profile, so nobody has to approve it by hand */
+  automatic?: boolean
+}
+
+export const accessRoutes: Record<AccessSystem, AccessRoute> = {
+  'Entra groups': { owner: 'Identity team', how: 'Added automatically from the role profile when the work account is created.', approveDays: 0, readyDays: 0, automatic: true },
+  'Teams groups': { owner: 'Team owner', how: 'The owner of each team adds the joiner.', approveDays: 1, readyDays: 1 },
+  GitHub: { owner: 'GitHub organisation admin', how: 'Approved by the organisation admin, then linked to the work account through single sign-on.', approveDays: 1, readyDays: 2 },
+  Backstage: { owner: 'Developer platform team', how: 'Follows the Entra group, so there is no separate approval.', approveDays: 0, readyDays: 1, automatic: true },
+  Jira: { owner: 'Project admin', how: 'The project admin approves and picks the role.', approveDays: 1, readyDays: 2 },
+  Confluence: { owner: 'Space admin', how: 'The space admin approves.', approveDays: 1, readyDays: 1 },
+  'Other access': { owner: 'Application owner', how: 'A service desk request that each application’s owner approves.', approveDays: 2, readyDays: 5 },
+}
+
+/** Access that is only switched on once the joiner has finished a course, by item id. */
+export const trainingGates: Record<string, string> = {
+  telephony: 'telephony training',
+  counter: 'cash-handling training',
+  'customer-hub': 'customer data training',
+  'customer-hub-cc': 'customer data training',
+}
+
+/** Days after Day 1 by which gated training is normally finished. */
+export const TRAINING_DONE_DAY = 4

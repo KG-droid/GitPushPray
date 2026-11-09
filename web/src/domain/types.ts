@@ -183,6 +183,8 @@ export interface StepDefinition {
   visibleWhen?: { stepId: string; value: string }
   /** Reached from the Explore tab only: kept out of the journey stages and the "next step" on Today */
   exploreOnly?: boolean
+  /** Nice-to-have: stores a preference but never counts towards the joiner's progress */
+  optional?: boolean
   /** Due date relative to the (current) start date. -14 = two weeks before Day 1 */
   dueOffsetDays?: number
   minutes?: number

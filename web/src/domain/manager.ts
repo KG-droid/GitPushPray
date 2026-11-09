@@ -42,7 +42,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     .filter((s) => s.owner === 'manager')
     .sort((a, b) => order(a) - order(b) || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'))
   const urgent = tasks.filter((t) => t.state === 'available' && t.dueDate && daysUntil(t.dueDate, journey.today) <= 7)
-  const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content')
+  const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content' && !s.optional)
   const kitLabel = laptopLabel(laptopOrder(journey))
   const equipment = journey.steps.find((s) => s.id === 'choose-equipment')
   const headset = journey.steps.find((s) => s.id === 'choose-headset')

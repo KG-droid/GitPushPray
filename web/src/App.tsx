@@ -13,6 +13,7 @@ import { ValueDetailPage, ValuesPage } from './pages/explore/ValuesPage'
 import { ChatPage } from './pages/joiner/ChatPage'
 import { JourneyPage } from './pages/joiner/JourneyPage'
 import { DayOnePage } from './pages/joiner/DayOnePage'
+import { AccessPage } from './pages/joiner/AccessPage'
 import { ChecksPage } from './pages/joiner/ChecksPage'
 import { AskPage } from './pages/joiner/AskPage'
 import { ManagerHomePage } from './pages/manager/ManagerHomePage'
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/today" element={<TodayPage />} />
         <Route path="/journey" element={<JourneyPage />} />
         <Route path="/journey/day-one" element={<DayOnePage />} />
+        <Route path="/journey/access" element={<AccessPage />} />
         <Route path="/journey/checks" element={<ChecksPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/explore/goals" element={<GoalsPage />} />
