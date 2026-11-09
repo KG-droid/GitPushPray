@@ -12,6 +12,7 @@ import { useDemo } from '../../demo/useDemo'
 import { daysUntil, formatShortDate } from '../../domain/dates'
 import type { CheckView } from '../../domain/journey'
 import type { CheckStatus } from '../../domain/types'
+import { IdPhotoCard } from './IdPhotoCard'
 
 const statusMeta: Record<CheckStatus, { label: string; color: 'default' | 'primary' | 'warning' | 'info' }> = {
   'not-started': { label: 'Not started', color: 'default' },
@@ -75,6 +76,8 @@ export function ChecksPage() {
           </Typography>
         </Box>
       </Box>
+
+      <IdPhotoCard />
 
       <Alert icon={<LockRounded />} severity="success" variant="outlined" sx={{ borderRadius: '20px', bgcolor: 'background.paper' }}>
         We only show where each check is, never what it found. Results are seen by the screening team only.
