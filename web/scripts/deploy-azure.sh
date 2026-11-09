@@ -49,6 +49,16 @@ if [[ "${SET_KEY:-0}" == "1" ]]; then
   if [[ -n "$KEY" ]]; then
     echo "› Setting ANTHROPIC_API_KEY app setting"
     az webapp config appsettings set -g "$RG" -n "$APP" --settings ANTHROPIC_API_KEY="$KEY" -o none
+
+    # Live Claude is only for people with the demo link. Make a code if there isn't one yet; it stays in .env.
+    CODE="$(grep -E '^DEMO_ACCESS_CODE=' .env | head -1 | cut -d= -f2- || true)"
+    if [[ -z "$CODE" ]]; then
+      CODE="$(openssl rand -hex 12)"
+      printf '\nDEMO_ACCESS_CODE=%s\n' "$CODE" >> .env
+    fi
+    echo "› Setting DEMO_ACCESS_CODE app setting"
+    az webapp config appsettings set -g "$RG" -n "$APP" --settings DEMO_ACCESS_CODE="$CODE" -o none
+    echo "  Judges' link (keep it out of git and the repo's docs): https://${APP}.azurewebsites.net/?k=${CODE}"
   else
     echo "  (no key in web/.env; the assistant will run in offline mode)"
   fi

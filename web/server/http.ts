@@ -1,12 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AskRequest, HandoverRequest, InsightsRequest } from '../src/assistant/protocol.ts'
 import { ask, recommendFromInsights, summariseHandover, type AssistantConfig } from './ask.ts'
+import type { Guard } from './guard.ts'
 
 /**
- * Node HTTP handler for /api/ask, /api/handover and /api/insights. The Vite dev server mounts this locally;
- * the Azure Static Web Apps function wraps the same ask()/summariseHandover() calls.
+ * Node HTTP handler for /api/ask, /api/handover and /api/insights. The Vite dev server mounts this locally
+ * and the production server (serve.ts) uses it too.
+ *
+ * With a guard, only requests it allows reach live Claude; everyone else gets the scripted offline answers.
  */
-export async function handleApi(req: IncomingMessage, res: ServerResponse, config: AssistantConfig): Promise<boolean> {
+export async function handleApi(req: IncomingMessage, res: ServerResponse, baseConfig: AssistantConfig, guard?: Guard): Promise<boolean> {
   const path = (req.url ?? '').split('?')[0]
   if (path !== '/api/ask' && path !== '/api/handover' && path !== '/api/insights') return false
 
@@ -15,6 +18,8 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse, confi
     res.end()
     return true
   }
+
+  const config: AssistantConfig = baseConfig.apiKey && guard && !guard.allow(req) ? { ...baseConfig, apiKey: undefined } : baseConfig
 
   let body: unknown
   try {
@@ -26,7 +31,8 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse, confi
   }
 
   if (path === '/api/insights') {
-    const result = await recommendFromInsights(body as InsightsRequest, config)
+    // The admin suggestions are the least interesting live use, so they stay on the built-in baseline unless switched on.
+    const result = await recommendFromInsights(body as InsightsRequest, config.insightsLive === false ? { ...config, apiKey: undefined } : config)
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify(result))
     return true

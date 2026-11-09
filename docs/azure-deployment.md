@@ -17,7 +17,7 @@ How the LBG Joiner Companion is hosted, and how to redeploy it. Written so any t
 | **Tags** | `team=team04`, `event=hackathon` |
 | **Startup command** | `node dist-server/index.mjs` |
 | **Hardening** | HTTPS only (HTTP redirects with a 301), minimum TLS 1.2, FTP/FTPS disabled, HTTP/2 on, Always On |
-| **App settings** | `SCM_DO_BUILD_DURING_DEPLOYMENT=false`, `NODE_ENV=production`, and optionally `ANTHROPIC_API_KEY` (the Claude key) and `ASSISTANT_MODEL` |
+| **App settings** | `SCM_DO_BUILD_DURING_DEPLOYMENT=false`, `NODE_ENV=production`, and optionally `ANTHROPIC_API_KEY` (the Claude key), `DEMO_ACCESS_CODE`, `ASSISTANT_MODEL`, `RATE_LIMIT_PER_MINUTE`, `DAILY_LIVE_LIMIT` and `INSIGHTS_LIVE` |
 | **Cost** | B1 is about £10 a month, so pennies over the event. It counts against the team's £150 budget. |
 
 ### Why Italy North and App Service
@@ -82,6 +82,20 @@ The script ([web/scripts/deploy-azure.sh](../web/scripts/deploy-azure.sh)) does 
 
 Redeploys take a minute or two. The first deploy took about 10 minutes while Azure fetched the Node 24 environment.
 
+## Keeping the Claude key private
+
+The key lives only in App Settings (and your local `web/.env`). Three things stop strangers spending it. None of them break the app: a request that fails a check gets the scripted offline answers, so the demo never shows an error.
+
+1. **Access code.** Live Claude needs the `DEMO_ACCESS_CODE` value in an `X-Demo-Key` header. The judges' link, `https://<app>/?k=<code>`, carries it. The page keeps the code in the browser and removes it from the address bar. Anyone without it can use the whole app but sees **Offline mode** in the Ask tab.
+2. **Rate limits.** Each address gets 20 live requests a minute (`RATE_LIMIT_PER_MINUTE`) and the whole site 500 a day (`DAILY_LIVE_LIMIT`). Counters are in memory, so they reset if the app restarts.
+3. **Spend cap.** Use a dedicated key in its own Claude Platform workspace with a low monthly limit. This is the backstop for everything else.
+
+The admin page's suggested changes stay on the built-in baseline unless `INSIGHTS_LIVE=1`.
+
+**Share the tokenised link and QR code on slides or a printed card, not in this repo.** The committed [demo-qr.png](demo-qr.png) is the plain URL on purpose. To rotate the code, change `DEMO_ACCESS_CODE` in App Settings and make a new QR. After the event, delete the key in the Claude console.
+
+On an iPhone, a home-screen app has its own storage, so the code from the browser isn't shared with it. Tell judges to use the link in the browser, or open the tokenised link from inside the installed app.
+
 ## Set or change the Claude key
 
 1. Put the key in `web/.env` (copy `web/.env.example`). `.env` is ignored by git.
@@ -91,7 +105,7 @@ Redeploys take a minute or two. The first deploy took about 10 minutes while Azu
    TEAM=04 APP=app-team04-joiner-a8a4 SET_KEY=1 ./scripts/deploy-azure.sh
    ```
 
-   This copies the key into App Settings with `-o none`, so it's never printed, and redeploys.
+   This copies the key into App Settings with `-o none`, so it's never printed, and redeploys. It also makes a `DEMO_ACCESS_CODE` (saved in `.env`) if there isn't one, and prints the judges' link.
 3. Check that `https://app-team04-joiner-a8a4.azurewebsites.net/healthz` returns `ok (live)`.
 
 To change the model, set `ASSISTANT_MODEL` in the App Service settings. The default is `claude-haiku-5-5`.

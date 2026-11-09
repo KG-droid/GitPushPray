@@ -44,7 +44,7 @@ The research behind these choices is in [docs/market-research.md](docs/market-re
 | Check-in answers, handovers and meetups recorded as events and reflected in the other views | Chat replies from managers and buddies (scripted) |
 | The PWA, served from Azure App Service | Storage: events live in the browser's `localStorage`, so views share state only on one device |
 
-Without a Claude key the assistant uses scripted answers and shows an **Offline mode** label, so the demo never breaks.
+Without a Claude key the assistant uses scripted answers and shows an **Offline mode** label, so the demo never breaks. On the live site, Claude is also limited to people with the demo link, and rate limited, so the key can't be used by strangers (see [docs/azure-deployment.md](docs/azure-deployment.md)).
 
 ## Run it
 
