@@ -53,6 +53,15 @@ const laptopOptions: ChoiceOption[] = [
   { value: 'macbook-pro', label: 'Apple MacBook Pro', detail: 'Faster and with a brighter screen, for heavier workloads' },
 ]
 
+/** A small, fixed range of extra hardware to pick from after the laptop. Headsets are the first. */
+const headsetOptions: ChoiceOption[] = [
+  { value: 'poly-blackwire-8225', label: 'HP Poly Blackwire 8225' },
+  { value: 'poly-voyager-focus-2', label: 'HP Poly Voyager Focus 2' },
+  { value: 'poly-voyager-free-60-uc', label: 'HP Poly Voyager Free 60 UC' },
+  { value: 'poly-voyager-surround-80', label: 'HP Poly Voyager Surround 80' },
+  { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
+]
+
 /** The laptop choice is due, and changes close, two weeks before Day 1 so IT has time to build it. */
 const laptopChangeDeadline = -14
 
@@ -146,6 +155,22 @@ export const stepCatalogue: StepDefinition[] = [
     resetBy: ['mgr-set-device-spec'],
     changeUntilOffsetDays: laptopChangeDeadline,
     changeClosedHint: 'Your laptop is being prepared. Ask your manager if you need a change.',
+  },
+  {
+    id: 'choose-headset',
+    stage: 'unlock',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'headset',
+    title: 'Choose your headset',
+    body: 'Pick the headset that suits how you work. It will be waiting for you with your laptop on Day 1.',
+    unlock: { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work.',
+    dueOffsetDays: laptopChangeDeadline,
+    minutes: 1,
+    options: headsetOptions,
+    changeUntilOffsetDays: laptopChangeDeadline,
+    changeClosedHint: 'Your headset is being prepared. Contact the IT service desk if you need a change.',
   },
   {
     id: 'choose-equipment',
