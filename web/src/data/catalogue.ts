@@ -62,6 +62,11 @@ const headsetOptions: ChoiceOption[] = [
   { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
 ]
 
+const phoneAccessOptions: ChoiceOption[] = [
+  { value: 'yes', label: 'Yes, set up Teams and Outlook on my phone', detail: 'You’ll get instructions to install and sign in to both apps on Day 1.' },
+  { value: 'no', label: 'No, I’ll only use my laptop', detail: 'Nothing is installed on your phone. You can ask for access later through the IT service desk.' },
+]
+
 /** 'no' stays first: it is the default answer for seeded journeys that skip this question. */
 const accessibilityOptions: ChoiceOption[] = [
   { value: 'no', label: 'No, I don’t need any adjustments', detail: 'You’ll choose your laptop and headset yourself. You can change your answer later.' },
@@ -208,6 +213,26 @@ export const stepCatalogue: StepDefinition[] = [
     options: headsetOptions,
     changeUntilOffsetDays: laptopChangeDeadline,
     changeClosedHint: 'Your headset is being prepared. Contact the IT service desk if you need a change.',
+  },
+  {
+    id: 'phone-access',
+    stage: 'unlock',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'phone_iphone',
+    title: 'Teams and Outlook on your personal phone',
+    body: 'Would you like to read your work email and use Teams on your own phone? It’s optional. You can change your mind at any time, and you’ll get the same access on your laptop either way.',
+    unlock: {
+      type: 'all',
+      rules: [
+        { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+        { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
+      ],
+    },
+    lockedHint:
+      'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree this with you in a conversation instead.',
+    minutes: 1,
+    options: phoneAccessOptions,
   },
   {
     id: 'choose-equipment',
@@ -472,7 +497,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'task',
     icon: 'accessibility_new',
     title: 'Talk through their accessibility needs',
-    body: 'Your joiner has asked to talk through adjustments before choosing their laptop and headset. Have the conversation with them, then record what you agreed.',
+    body: 'Your joiner has asked to talk through adjustments before choosing their laptop, headset and phone access. Have the conversation with them, then record what you agreed.',
     unlock: { type: 'always' },
     visibleWhen: { stepId: 'accessibility-needs', value: 'yes' },
     dueOffsetDays: -21,

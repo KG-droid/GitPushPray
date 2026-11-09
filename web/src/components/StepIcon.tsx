@@ -23,6 +23,7 @@ import LaptopMacRounded from '@mui/icons-material/LaptopMacRounded'
 import MoodRounded from '@mui/icons-material/MoodRounded'
 import PaymentsRounded from '@mui/icons-material/PaymentsRounded'
 import PersonRounded from '@mui/icons-material/PersonRounded'
+import PhoneIphoneRounded from '@mui/icons-material/PhoneIphoneRounded'
 import PlaceRounded from '@mui/icons-material/PlaceRounded'
 import RedeemRounded from '@mui/icons-material/RedeemRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
@@ -56,6 +57,7 @@ const icons: Record<string, ComponentType<SvgIconProps>> = {
   insights: InsightsRounded,
   key: KeyRounded,
   laptop: LaptopMacRounded,
+  phone_iphone: PhoneIphoneRounded,
   mood: MoodRounded,
   payments: PaymentsRounded,
   person: PersonRounded,

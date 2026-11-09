@@ -51,6 +51,7 @@ describe('laptop spec and model', () => {
     const steps = journey('priya', '2026-11-09', yes).steps
     expect(steps.find((s) => s.id === 'choose-kit')?.state).toBe('locked')
     expect(steps.find((s) => s.id === 'choose-headset')?.state).toBe('locked')
+    expect(steps.find((s) => s.id === 'phone-access')?.state).toBe('locked')
     expect(steps.find((s) => s.id === 'mgr-accessibility-conversation')?.state).toBe('available')
 
     const no = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'no')]

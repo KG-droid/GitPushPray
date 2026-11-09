@@ -272,6 +272,7 @@ function LaptopSpecForm({
 const conversationPrompts = [
   'Ask what would make their first weeks easier. Let them lead, and don’t ask for a diagnosis or medical detail.',
   'Talk through the laptop and headset options together, including anything that isn’t on the standard list.',
+  'Ask whether they’d like Teams and Outlook on their personal phone. It’s optional, and some access tools work well there.',
   'Mention Occupational Health if they’d like a workplace assessment. IT and Occupational Health can arrange specialist kit.',
   'Agree what to record. Keep the detail between you, them, IT and Occupational Health.',
 ]
@@ -292,7 +293,9 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
   const [headset, setHeadset] = useState<string | undefined>(headsetStep?.value)
   const equipmentStep = stepOf('choose-equipment')
   const [extras, setExtras] = useState<string[]>(parsePicks(equipmentStep?.value))
-  const ready = (!kitStep || !!laptop) && (!headsetStep || !!headset)
+  const phoneStep = stepOf('phone-access')
+  const [phone, setPhone] = useState<string | undefined>(phoneStep?.value)
+  const ready = (!kitStep || !!laptop) && (!headsetStep || !!headset) && (!phoneStep || !!phone)
 
   const record = () => {
     const as = { by: 'manager' as const, personaId: journey.persona.id }
@@ -300,6 +303,7 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
     if (specStep && laptop) completeStep('mgr-set-device-spec', { ...as, value: spec })
     if (kitStep && laptop) completeStep('choose-kit', { ...as, value: laptop })
     if (headsetStep && headset) completeStep('choose-headset', { ...as, value: headset })
+    if (phoneStep && phone) completeStep('phone-access', { ...as, value: phone })
     if (equipmentStep) completeStep('choose-equipment', { ...as, value: joinPicks(extras.length ? extras : [NO_EQUIPMENT]) })
     completeStep('mgr-accessibility-conversation', as)
     onDone()
@@ -337,6 +341,7 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
         </>
       )}
       {headsetStep && <ChoiceGroup label="Headset" options={headsetStep.options ?? []} value={headset} onChange={setHeadset} />}
+      {phoneStep && <ChoiceGroup label="Teams and Outlook on their personal phone" options={phoneStep.options ?? []} value={phone} onChange={setPhone} />}
       {equipmentStep && (
         <EquipmentPicker
           options={equipmentStep.options ?? []}
