@@ -239,16 +239,6 @@ export const stepCatalogue: StepDefinition[] = [
       { value: 'customer-vulnerability', label: 'Spotting customers who need extra care' },
     ],
   },
-  {
-    id: 'culture-reading',
-    stage: 'unlock',
-    owner: 'joiner',
-    kind: 'content',
-    icon: 'auto_stories',
-    title: 'What it’s really like here',
-    body: 'Short stories from colleagues who joined this year, so the wait feels shorter.',
-    unlock: { type: 'always' },
-  },
   ...siteGuides(),
   {
     id: 'tools-engineering',
