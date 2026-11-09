@@ -228,6 +228,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [persona, stamp, today],
   )
 
+  const messageJoiner = useCallback(
+    (personaId: string, text: string) => {
+      const target = repository.getPersona(personaId)
+      if (!target || !text.trim()) return
+      const payload: ChatMessagePayload = { withId: target.managerId, from: 'them', text: text.trim() }
+      repository.addEvent({ personaId, type: 'chat_message', at: stamp(), payload: { ...payload } })
+      setToast(`Sent to ${target.firstName}. It will be waiting for them in their chat with you.`)
+    },
+    [stamp],
+  )
+
   const recordHandover = useCallback(
     (route: HandoverSentPayload['route'], summary: string) => {
       const payload: HandoverSentPayload = { route, summary }
@@ -320,6 +331,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     sendChat,
     typingId,
     logMeetup,
+    messageJoiner,
     recordHandover,
     submitPulse,
     answeredCheckIns,

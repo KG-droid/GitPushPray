@@ -112,3 +112,19 @@ describe('Manager view: questions sent to the manager', () => {
     expect(screen.getByText(/what week one looks like/)).toBeInTheDocument()
   })
 })
+
+describe('Manager view: a joiner who has gone quiet', () => {
+  it('nudges the manager, and one tap sends a hello that the joiner can read', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager', { role: 'manager' })
+
+    expect(screen.getByText('Priya has gone quiet')).toBeInTheDocument()
+    await user.click(screen.getByText('Priya has gone quiet'))
+    expect(screen.getByText(/may be at risk of not starting/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Send Priya a quick hello' }))
+    expect(await screen.findByText(/You said hello to Priya/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Send Priya a quick hello' })).toBeNull()
+    expect(repository.listEvents('priya').some((e) => e.type === 'chat_message' && JSON.stringify(e.payload).includes('looking forward to having you'))).toBe(true)
+  })
+})

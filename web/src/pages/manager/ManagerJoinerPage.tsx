@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Alert, Box, Card, CardContent, Checkbox, FormControlLabel, IconButton, LinearProgress, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Checkbox, FormControlLabel, IconButton, LinearProgress, Stack, Typography } from '@mui/material'
 import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded'
+import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
 import ForumRounded from '@mui/icons-material/ForumRounded'
 import ShieldRounded from '@mui/icons-material/ShieldRounded'
 import VisibilityOffRounded from '@mui/icons-material/VisibilityOffRounded'
@@ -13,6 +14,8 @@ import { PersonAvatar } from '../../components/PersonAvatar'
 import { StepRow } from '../../components/StepRow'
 import { countdownLabel, formatShortDate } from '../../domain/dates'
 import { firstWeekEssentials } from '../../domain/manager'
+import { helloMessage } from '../../domain/risk'
+import { useDemo } from '../../demo/useDemo'
 import { ManagerTaskSheet } from './ManagerTaskSheet'
 import { StatusChip } from './StatusChip'
 import { useManager } from './useManager'
@@ -21,7 +24,8 @@ import { useManager } from './useManager'
 export function ManagerJoinerPage() {
   const { personaId = '' } = useParams()
   const navigate = useNavigate()
-  const { views } = useManager()
+  const { views, manager } = useManager()
+  const { messageJoiner } = useDemo()
   const [openTask, setOpenTask] = useState<string | null>(null)
   const [essentials, setEssentials] = useState<boolean[]>(() => firstWeekEssentials.map(() => false))
 
@@ -72,6 +76,42 @@ export function ManagerJoinerPage() {
             </Stack>
           </CardContent>
         </Card>
+      )}
+
+      {view.quiet?.status === 'quiet' && (
+        <Card sx={{ borderColor: 'warning.main', borderWidth: 2 }}>
+          <CardContent>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <IconTile icon={<HourglassEmptyRounded color="warning" />} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {p.firstName} has gone quiet{view.quiet.level === 'at-risk' ? ' and may be at risk of not starting' : ''}
+                </Typography>
+                {view.quiet.reasons.map((r) => (
+                  <Typography key={r} variant="body2" sx={{ mt: 0.5 }}>
+                    {r}
+                  </Typography>
+                ))}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, mb: 1.5 }}>
+                  Each extra week of silence between offer and Day 1 makes a no-show more likely. A short, warm message from you is the best fix.
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    messageJoiner(p.id, helloMessage(p.firstName, manager?.name.split(' ')[0] ?? 'your manager', formatShortDate(journey.startDate)))
+                  }
+                >
+                  Send {p.firstName} a quick hello
+                </Button>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+      {view.quiet?.status === 'contacted' && (
+        <Alert severity="success" variant="outlined" sx={{ borderRadius: '20px', bgcolor: 'background.paper' }}>
+          You said hello to {p.firstName} on {formatShortDate(view.quiet.at.slice(0, 10))}. We’ll check in again in a few days if they’re still quiet.
+        </Alert>
       )}
 
       {view.startDateMoved && (

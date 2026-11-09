@@ -51,6 +51,8 @@ export interface DemoContextValue extends DemoState {
   typingId: string | null
   /** Buddy logs a meetup with the selected joiner */
   logMeetup(kind: MeetupKind): void
+  /** The manager sends a joiner a message (it appears in the joiner's chat with their manager) */
+  messageJoiner(personaId: string, text: string): void
   /** Record that the joiner's question was handed to a person (so their buddy or manager can see it) */
   recordHandover(route: HandoverSentPayload['route'], summary: string): void
   /** Answer the two-question pulse that belongs to a step, which also completes that step */

@@ -1,5 +1,6 @@
-import { Box, Card, CardActionArea, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
+import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
 import ForumRounded from '@mui/icons-material/ForumRounded'
 import EventRepeatRounded from '@mui/icons-material/EventRepeatRounded'
 import RocketLaunchRounded from '@mui/icons-material/RocketLaunchRounded'
@@ -75,6 +76,7 @@ export function ManagerHomePage() {
                     </Stack>
                     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                       <StatusChip status={v.status} />
+                      {v.quiet?.status === 'quiet' && <Chip size="small" color="warning" variant="outlined" label="Gone quiet" />}
                       <LinearProgress
                         variant="determinate"
                         value={v.tasks.length ? (v.tasksDone / v.tasks.length) * 100 : 100}
@@ -100,6 +102,12 @@ function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
   const content =
     nudge.kind === 'asked-for-you'
       ? { icon: <ForumRounded color="secondary" />, title: `${nudge.name} asked for you`, body: nudge.summary }
+      : nudge.kind === 'gone-quiet'
+      ? {
+          icon: <HourglassEmptyRounded color="warning" />,
+          title: `${nudge.name} has gone quiet`,
+          body: `No activity for ${nudge.quietDays} days. A quick hello makes a difference.`,
+        }
       : nudge.kind === 'first-week'
       ? {
           icon: <RocketLaunchRounded color="secondary" />,
@@ -119,7 +127,7 @@ function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
           }
 
   return (
-    <Card sx={nudge.kind === 'first-week' || nudge.kind === 'asked-for-you' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
+    <Card sx={nudge.kind === 'first-week' || nudge.kind === 'asked-for-you' || nudge.kind === 'gone-quiet' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
       <CardActionArea onClick={onOpen}>
         <CardContent sx={{ display: 'flex', gap: 1.75, alignItems: 'center', py: 1.75 }}>
           <IconTile icon={content.icon} />
