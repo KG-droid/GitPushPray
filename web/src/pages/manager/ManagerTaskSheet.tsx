@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Box, Button, Card, CardActionArea, Checkbox, Chip, Drawer, FormControlLabel, IconButton, Radio, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardActionArea, Checkbox, Chip, Drawer, FormControlLabel, IconButton, Radio, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
 import { IconTile } from '../../components/IconTile'
 import { PersonAvatar } from '../../components/PersonAvatar'
-import { groupBySystem, holderCounts, itemsFor, joinAccess, parseAccess, profilesFor, teamAccess } from '../../domain/access'
+import { AccessTracker } from '../../components/AccessTracker'
+import { accessProgress, groupBySystem, holderCounts, itemsFor, joinAccess, profilesFor, requestedItems, summariseAccess, teamAccess } from '../../domain/access'
 import { GOAL_SEPARATOR, suggestedGoals } from '../../data/goals'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
@@ -80,22 +81,31 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
     return <LaptopSpecForm journey={journey} current={step.value} onCancel={() => setChanging(false)} onDone={onClose} />
   }
 
-  const accessIds = step.id === 'mgr-request-access' ? parseAccess(step.value) : []
-  const accessItems = itemsFor(journey.persona.jobFamily).filter((i) => accessIds.includes(i.id))
+  const accessItems = step.id === 'mgr-request-access' ? requestedItems(journey.persona.jobFamily, step.value) : []
+  const progress = step.doneAt ? accessProgress(accessItems, step.doneAt, journey.today, journey.startDate) : []
+  const access = summariseAccess(progress)
 
   return (
     <Stack spacing={1.5}>
       {accessItems.length > 0 && (
-        <Box role="region" aria-label="Access requested">
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-            {accessItems.length} access items requested
-          </Typography>
-          {groupBySystem(accessItems).map((g) => (
-            <Typography key={g.system} variant="caption" color="text.secondary" component="div">
-              <strong>{g.system}:</strong> {g.items.map((i) => i.label).join(', ')}
+        <Stack spacing={1} role="region" aria-label="Access requested">
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {accessItems.length} access items requested
             </Typography>
-          ))}
-        </Box>
+            <Typography variant="caption" color="text.secondary">
+              One request, sent to each system’s owner. {access.ready} ready, {access.inProgress} in progress
+              {access.afterTraining ? `, ${access.afterTraining} after training` : ''}.
+            </Typography>
+          </Box>
+          {access.late.length > 0 && (
+            <Alert severity="warning" variant="outlined">
+              {access.late.length === 1 ? '1 item is' : `${access.late.length} items are`} not expected until after Day 1:{' '}
+              {access.late.map((p) => `${p.item.label} (${p.route.owner})`).join(', ')}. Chase the owner, or plan the first days around it.
+            </Alert>
+          )}
+          <AccessTracker progress={progress} dense />
+        </Stack>
       )}
       <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
         <CheckCircleRounded fontSize="small" />

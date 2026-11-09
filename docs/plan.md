@@ -71,6 +71,17 @@ All names, people and policies are fictional.
 - **M3 Just-in-time nudges:** cards based on the Google research ("Priya starts Monday: here are 5 things that matter most"), plus cover handling: "Going on leave? Hand over to a deputy."
 - **M4 Day-30 signal:** the joiner's pulse trend and buddy meeting count, with suggested actions if they're quietly struggling. The manager sees signals, not private chat content.
 
+### System access: one request, many owners
+New colleagues need access to many systems that are each run by a different team (Entra, Teams, GitHub, Jira, Confluence, line-of-business applications). We don't replace those teams' approvals. We put one front door on them.
+
+- **The manager asks once (M2).** They start from a role profile or copy a teammate, see what the team already has, adjust and submit. This unlocks only when vetting has cleared.
+- **The request fans out.** Each item goes to the owner of its system by that system's own route: role-profile groups are automatic, team and project owners approve theirs, and applications go through the service desk to the application owner.
+- **Everyone sees the same tracker.** The joiner's "Your system access" page (`/journey/access`) and the manager's task show each system, who approves it and its status: With approver, Being set up, After training or Ready.
+- **It's honest about what isn't Day 1.** Some access only switches on after training (telephony, cash handling, customer data). Anything not expected until after Day 1 is flagged to the manager, with the owner to chase.
+- **The joiner chases nobody.** One sign-in on Day 1 opens everything that's ready, and anything missing goes back through the manager's single request.
+
+Simulated for the demo: owners and lead times are illustrative, and status moves with the demo date. In real use each status would come from the owning system (for example Entra access packages, the GitHub and Jira APIs, and service desk tickets).
+
 ## 5. Buddy view
 - **B1 My buddy:** the joiner's profile, why they were matched (shared interests, location, role), and what the buddy can and can't see.
 - **B2 Meetups tracker:** meetings so far measured against the Microsoft research (aim for 4–8+ in 90 days), with suggested next topics.
