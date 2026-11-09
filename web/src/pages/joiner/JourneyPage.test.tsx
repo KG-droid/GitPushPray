@@ -27,6 +27,32 @@ describe('Journey tab', () => {
     expect(screen.getByText('Surface Laptop')).toBeInTheDocument()
   })
 
+  it('lets the joiner change their laptop before the deadline, sending it back for approval', async () => {
+    const user = userEvent.setup()
+    renderApp('/journey', { personaId: 'margaret' })
+
+    await user.click(screen.getByText('Choose your laptop'))
+    const sheet = await screen.findByRole('dialog', { name: 'Choose your laptop' })
+    expect(within(sheet).getByText(/You can change this until Mon 21 Dec/)).toBeInTheDocument()
+    await user.click(within(sheet).getByRole('button', { name: 'Change' }))
+    expect(within(sheet).getByRole('button', { name: 'Save change' })).toBeDisabled() // nothing changed yet
+    await user.click(within(sheet).getByRole('radio', { name: /HP EliteBook G11/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Save change' }))
+
+    expect(await screen.findByText(/sent 1 thing back to your team to redo/)).toBeInTheDocument()
+    expect(screen.getByText('HP EliteBook G11')).toBeInTheDocument()
+  })
+
+  it('closes laptop changes after the deadline, with a reason', async () => {
+    const user = userEvent.setup()
+    renderApp('/journey', { personaId: 'margaret', today: '2026-12-22' })
+
+    await user.click(screen.getByText('Choose your laptop'))
+    const sheet = await screen.findByRole('dialog', { name: 'Choose your laptop' })
+    expect(within(sheet).queryByRole('button', { name: 'Change' })).not.toBeInTheDocument()
+    expect(within(sheet).getByText(/Changes closed after Mon 21 Dec\. Your laptop is being prepared/)).toBeInTheDocument()
+  })
+
   it('shows the manager’s progress alongside the joiner’s', async () => {
     const user = userEvent.setup()
     renderApp('/journey')

@@ -14,7 +14,9 @@ import { laptopOrder } from '../domain/laptop'
 export function StepActions({ step, onDone }: { step: StepView; onDone?: () => void }) {
   const { completeStep, journey } = useDemo()
   const [choice, setChoice] = useState<string | undefined>()
+  const [changing, setChanging] = useState(false)
   const laptopSpec = step.id === 'choose-kit' ? laptopOrder(journey).spec : undefined
+  const isChange = changing && step.canChange
 
   if (step.state === 'locked') {
     return (
@@ -25,21 +27,50 @@ export function StepActions({ step, onDone }: { step: StepView; onDone?: () => v
     )
   }
 
-  if (step.state === 'done') {
+  if (step.state === 'done' && !isChange) {
     const picked = step.options?.find((o) => o.value === step.value)
     return (
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'primary.main' }}>
-        <CheckCircleRounded fontSize="small" />
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {picked ? `You chose: ${picked.label}` : step.kind === 'content' ? 'Read' : 'Done'}
-          {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
-        </Typography>
+      <Stack spacing={1.5}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'primary.main' }}>
+          <CheckCircleRounded fontSize="small" />
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {picked ? `You chose: ${picked.label}` : step.kind === 'content' ? 'Read' : 'Done'}
+            {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
+          </Typography>
+        </Stack>
+        {step.canChange && step.changeUntil ? (
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setChoice(step.value)
+                setChanging(true)
+              }}
+            >
+              Change
+            </Button>
+            <Typography variant="caption" color="text.secondary">
+              You can change this until {formatShortDate(step.changeUntil)}.
+            </Typography>
+          </Stack>
+        ) : (
+          step.changeUntil &&
+          step.changeClosedHint && (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'text.secondary' }}>
+              <LockRounded fontSize="small" />
+              <Typography variant="body2">
+                Changes closed after {formatShortDate(step.changeUntil)}. {step.changeClosedHint}
+              </Typography>
+            </Stack>
+          )
+        )}
       </Stack>
     )
   }
 
   const finish = () => {
     completeStep(step.id, { value: choice })
+    setChanging(false)
     onDone?.()
   }
 
@@ -87,11 +118,22 @@ export function StepActions({ step, onDone }: { step: StepView; onDone?: () => v
       )}
 
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
-        <Button variant="contained" disabled={step.kind === 'choice' && !choice} onClick={finish}>
-          {step.kind === 'choice' ? 'Confirm choice' : step.kind === 'content' ? 'Got it' : 'Mark as done'}
-        </Button>
-        {step.minutes && <Chip size="small" label={`${step.minutes} min`} />}
-        {step.dueDate && <Chip size="small" variant="outlined" label={`By ${formatShortDate(step.dueDate)}`} />}
+        {isChange ? (
+          <>
+            <Button variant="contained" disabled={!choice || choice === step.value} onClick={finish}>
+              Save change
+            </Button>
+            <Button onClick={() => setChanging(false)}>Cancel</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="contained" disabled={step.kind === 'choice' && !choice} onClick={finish}>
+              {step.kind === 'choice' ? 'Confirm choice' : step.kind === 'content' ? 'Got it' : 'Mark as done'}
+            </Button>
+            {step.minutes && <Chip size="small" label={`${step.minutes} min`} />}
+            {step.dueDate && <Chip size="small" variant="outlined" label={`By ${formatShortDate(step.dueDate)}`} />}
+          </>
+        )}
       </Stack>
     </Box>
   )

@@ -36,6 +36,10 @@ export interface StepView extends StepDefinition {
   dueDate?: string
   doneAt?: string
   value?: string
+  /** Last day a done step can still be changed, for steps that allow changes */
+  changeUntil?: string
+  /** Done, and still inside its change window */
+  canChange: boolean
 }
 
 export interface CheckView extends CheckDefinition {
@@ -96,12 +100,8 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
   const checkViews = buildChecks(persona, past, today, checks)
   const cleared = new Set(checkViews.filter((c) => c.status === 'cleared').map((c) => c.id))
 
-  const completions = new Map<string, { at: string; value?: string }>()
-  for (const e of past) {
-    if (e.type !== 'step_completed') continue
-    const p = e.payload as unknown as StepCompletedPayload
-    completions.set(p.stepId, { at: e.at, value: p.value })
-  }
+  const mySteps = steps.filter((s) => matchesAudience(persona, s.audience))
+  const completions = effectiveCompletions(mySteps, past)
 
   const ctx: RuleContext = {
     daysToStart,
@@ -109,19 +109,20 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     isDone: (stepId) => completions.has(stepId),
   }
 
-  const stepViews: StepView[] = steps
-    .filter((s) => matchesAudience(persona, s.audience))
-    .map((s) => {
-      const done = completions.get(s.id)
-      const state: StepState = done ? 'done' : evaluate(s.unlock, ctx) ? 'available' : 'locked'
-      return {
-        ...s,
-        state,
-        doneAt: done?.at,
-        value: done?.value,
-        dueDate: s.dueOffsetDays === undefined ? undefined : addDays(startDate, s.dueOffsetDays),
-      }
-    })
+  const stepViews: StepView[] = mySteps.map((s) => {
+    const done = completions.get(s.id)
+    const state: StepState = done ? 'done' : evaluate(s.unlock, ctx) ? 'available' : 'locked'
+    const changeUntil = s.changeUntilOffsetDays === undefined ? undefined : addDays(startDate, s.changeUntilOffsetDays)
+    return {
+      ...s,
+      state,
+      doneAt: done?.at,
+      value: done?.value,
+      dueDate: s.dueOffsetDays === undefined ? undefined : addDays(startDate, s.dueOffsetDays),
+      changeUntil,
+      canChange: state === 'done' && !!changeUntil && today <= changeUntil,
+    }
+  })
 
   const stages = buildStages(stepViews)
   const currentStage = stages.find((s) => s.status === 'current')?.id ?? 'day-30'
@@ -189,6 +190,36 @@ export function evaluate(rule: UnlockRule, ctx: RuleContext): boolean {
     case 'any':
       return rule.rules.some((r) => evaluate(r, ctx))
   }
+}
+
+/**
+ * The latest completion of each step that still stands. A completion is undone when a step in its
+ * `resetBy` list was redone after it, or is itself undone (so a spec change clears the laptop choice
+ * and, through it, the approval).
+ */
+function effectiveCompletions(steps: StepDefinition[], past: JourneyEvent[]): Map<string, { at: string; value?: string }> {
+  const latest = new Map<string, { at: string; value?: string }>()
+  for (const e of past) {
+    if (e.type !== 'step_completed') continue
+    const p = e.payload as unknown as StepCompletedPayload
+    latest.set(p.stepId, { at: e.at, value: p.value })
+  }
+
+  const byId = new Map(steps.map((s) => [s.id, s]))
+  const stands = new Map<string, boolean>()
+  const standsFor = (id: string): boolean => {
+    const known = stands.get(id)
+    if (known !== undefined) return known
+    const done = latest.get(id)
+    const resetBy = (byId.get(id)?.resetBy ?? []).filter((dep) => byId.has(dep))
+    const result = !!done && resetBy.every((dep) => standsFor(dep) && latest.get(dep)!.at <= done.at)
+    stands.set(id, result)
+    return result
+  }
+
+  const effective = new Map<string, { at: string; value?: string }>()
+  for (const [id, done] of latest) if (!byId.has(id) || standsFor(id)) effective.set(id, done)
+  return effective
 }
 
 function currentStartDate(persona: Persona, past: JourneyEvent[]): string {

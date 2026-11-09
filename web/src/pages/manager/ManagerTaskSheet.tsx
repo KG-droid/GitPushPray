@@ -9,7 +9,7 @@ import { GOAL_SEPARATOR, suggestedGoals } from '../../data/goals'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
-import type { JourneyView } from '../../domain/journey'
+import type { JourneyView, StepView } from '../../domain/journey'
 import { laptopLabel, laptopOrder, suggestedLaptopSpec } from '../../domain/laptop'
 
 /** Bottom sheet for one of the manager's tasks. Setting goals and assigning a buddy get their own forms. */
@@ -51,13 +51,7 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
               <Typography variant="body2">{step.lockedHint}</Typography>
             </Stack>
           ) : step.state === 'done' ? (
-            <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
-              <CheckCircleRounded fontSize="small" />
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
-                {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
-              </Typography>
-            </Stack>
+            <DoneState key={step.id} journey={journey} step={step} onClose={onClose} />
           ) : step.id === 'mgr-set-goals' ? (
             <GoalsForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-assign-buddy' ? (
@@ -70,6 +64,46 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
         </Box>
       )}
     </Drawer>
+  )
+}
+
+/** What a done task shows, plus a way to change it while its change window is open. */
+function DoneState({ journey, step, onClose }: { journey: JourneyView; step: StepView; onClose: () => void }) {
+  const [changing, setChanging] = useState(false)
+  if (changing && step.canChange && step.id === 'mgr-set-device-spec') {
+    return <LaptopSpecForm journey={journey} current={step.value} onCancel={() => setChanging(false)} onDone={onClose} />
+  }
+
+  return (
+    <Stack spacing={1.5}>
+      <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
+        <CheckCircleRounded fontSize="small" />
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
+          {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
+        </Typography>
+      </Stack>
+      {step.canChange && step.changeUntil ? (
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Button variant="outlined" onClick={() => setChanging(true)}>
+            Change spec
+          </Button>
+          <Typography variant="caption" color="text.secondary">
+            You can change this until {formatShortDate(step.changeUntil)}.
+          </Typography>
+        </Stack>
+      ) : (
+        step.changeUntil &&
+        step.changeClosedHint && (
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'text.secondary' }}>
+            <LockRounded fontSize="small" />
+            <Typography variant="body2">
+              Changes closed after {formatShortDate(step.changeUntil)}. {step.changeClosedHint}
+            </Typography>
+          </Stack>
+        )
+      )}
+    </Stack>
   )
 }
 
@@ -143,12 +177,24 @@ function BuddyForm({ journey, onDone }: { journey: JourneyView; onDone: () => vo
   )
 }
 
-function LaptopSpecForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+/** Sets the laptop spec, or changes it when `current` is given. */
+function LaptopSpecForm({
+  journey,
+  current,
+  onCancel,
+  onDone,
+}: {
+  journey: JourneyView
+  current?: string
+  onCancel?: () => void
+  onDone: () => void
+}) {
   const { completeStep } = useDemo()
   const step = journey.steps.find((s) => s.id === 'mgr-set-device-spec')
   const suggested = suggestedLaptopSpec(journey.persona.jobFamily)
-  const [spec, setSpec] = useState<string>(suggested)
+  const [spec, setSpec] = useState<string>(current ?? suggested)
   const name = journey.persona.firstName
+  const model = laptopOrder(journey).model
 
   return (
     <Stack spacing={1.5}>
@@ -181,17 +227,23 @@ function LaptopSpecForm({ journey, onDone }: { journey: JourneyView; onDone: () 
         })}
       </Stack>
       <Typography variant="caption" color="text.secondary">
-        {name} will then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in this spec.
+        {current && model
+          ? `${name} has chosen the ${model.label}. Changing the spec clears that choice so they can pick again, and the order will need your approval again.`
+          : `${name} will then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in this spec.`}
       </Typography>
-      <Button
-        variant="contained"
-        onClick={() => {
-          completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value: spec })
-          onDone()
-        }}
-      >
-        Confirm spec
-      </Button>
+      <Stack direction="row" spacing={1}>
+        <Button
+          variant="contained"
+          disabled={spec === current}
+          onClick={() => {
+            completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value: spec })
+            onDone()
+          }}
+        >
+          {current ? 'Save change' : 'Confirm spec'}
+        </Button>
+        {onCancel && <Button onClick={onCancel}>Cancel</Button>}
+      </Stack>
     </Stack>
   )
 }
