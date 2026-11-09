@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Button, Card, CardActionArea, Drawer, IconButton, Radio, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, Checkbox, Drawer, IconButton, Radio, Stack, TextField, Typography } from '@mui/material'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
@@ -10,6 +10,7 @@ import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
 import type { JourneyView, StepView } from '../../domain/journey'
+import { joinPicks, NO_EQUIPMENT, parsePicks, togglePick } from '../../domain/equipment'
 import { laptopLabel, laptopOrder, suggestedLaptopSpec } from '../../domain/laptop'
 
 /** Bottom sheet for one of the manager's tasks. Setting goals and assigning a buddy get their own forms. */
@@ -271,6 +272,8 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
   const [spec, setSpec] = useState<string>(specStep?.value ?? suggestedLaptopSpec(journey.persona.jobFamily))
   const [laptop, setLaptop] = useState<string | undefined>(kitStep?.value)
   const [headset, setHeadset] = useState<string | undefined>(headsetStep?.value)
+  const equipmentStep = stepOf('choose-equipment')
+  const [extras, setExtras] = useState<string[]>(parsePicks(equipmentStep?.value))
   const ready = (!kitStep || !!laptop) && (!headsetStep || !!headset)
 
   const record = () => {
@@ -279,6 +282,7 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
     if (specStep && laptop) completeStep('mgr-set-device-spec', { ...as, value: spec })
     if (kitStep && laptop) completeStep('choose-kit', { ...as, value: laptop })
     if (headsetStep && headset) completeStep('choose-headset', { ...as, value: headset })
+    if (equipmentStep) completeStep('choose-equipment', { ...as, value: joinPicks(extras.length ? extras : [NO_EQUIPMENT]) })
     completeStep('mgr-accessibility-conversation', as)
     onDone()
   }
@@ -315,6 +319,13 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
         </>
       )}
       {headsetStep && <ChoiceGroup label="Headset" options={headsetStep.options ?? []} value={headset} onChange={setHeadset} />}
+      {equipmentStep && (
+        <EquipmentPicker
+          options={equipmentStep.options ?? []}
+          picks={extras}
+          onChange={(value) => setExtras((current) => togglePick(current, value))}
+        />
+      )}
 
       <Typography variant="caption" color="text.secondary">
         This is saved as {name}’s own choice, and the laptop order will come to you to approve as usual. If they need something that isn’t listed, ask IT or Occupational Health to arrange it.
@@ -322,6 +333,58 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
       <Button variant="contained" disabled={!ready} onClick={record}>
         We’ve talked it through
       </Button>
+    </Stack>
+  )
+}
+
+/** Everything else on offer, grouped: workstation kit, then assistive technology and apps such as ZoomText. Pick as many as were agreed. */
+function EquipmentPicker({
+  options,
+  picks,
+  onChange,
+}: {
+  options: { value: string; label: string; detail?: string; group?: string }[]
+  picks: string[]
+  onChange: (value: string) => void
+}) {
+  return (
+    <Stack spacing={1} role="group" aria-label="Equipment and assistive technology">
+      <Typography variant="overline" color="text.secondary">
+        Equipment, apps and assistive technology
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: '-4px !important' }}>
+        Pick everything you agreed. This goes to IT and Occupational Health.
+      </Typography>
+      {options.map((o, i) => {
+        const selected = picks.includes(o.value)
+        const showGroup = o.group && o.group !== options[i - 1]?.group
+        return (
+          <Box key={o.value} sx={{ display: 'contents' }}>
+            {showGroup && (
+              <Typography variant="caption" color="text.secondary" sx={{ pt: 1, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {o.group}
+              </Typography>
+            )}
+            <Card variant="outlined" sx={{ borderColor: selected ? 'primary.main' : undefined, borderWidth: selected ? 2 : 1 }}>
+              <CardActionArea onClick={() => onChange(o.value)} role="checkbox" aria-checked={selected}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.25 }}>
+                  <Checkbox checked={selected} size="small" tabIndex={-1} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {o.label}
+                    </Typography>
+                    {o.detail && (
+                      <Typography variant="caption" color="text.secondary">
+                        {o.detail}
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
+              </CardActionArea>
+            </Card>
+          </Box>
+        )
+      })}
     </Stack>
   )
 }

@@ -94,6 +94,9 @@ const equipmentOptions: ChoiceOption[] = [
 
   { group: 'Assistive technology', value: 'screen-reader', label: 'Screen reader (JAWS or NVDA)', detail: 'Reads the screen aloud, for blind or low-vision colleagues' },
   { group: 'Assistive technology', value: 'screen-magnifier', label: 'Screen magnifier (ZoomText)', detail: 'Enlarges the screen and adjusts contrast and colour' },
+  { group: 'Assistive technology', value: 'screen-reader-magnifier', label: 'Fusion (JAWS and ZoomText together)', detail: 'Screen reader and magnifier in one, for low-vision colleagues who use both' },
+  { group: 'Assistive technology', value: 'braille-display', label: 'Braille display', detail: 'Refreshable braille alongside a screen reader' },
+  { group: 'Assistive technology', value: 'windows-accessibility', label: 'Windows accessibility tools (Magnifier, Narrator, Voice Access)', detail: 'Built in and switched on for you, with no extra install' },
   { group: 'Assistive technology', value: 'speech-recognition', label: 'Speech recognition (Dragon)', detail: 'Dictate and control your computer by voice' },
   { group: 'Assistive technology', value: 'read-write-software', label: 'Reading and writing support (Read&Write)', detail: 'Text-to-speech, word prediction and a screen ruler, helpful with dyslexia' },
   { group: 'Assistive technology', value: 'ergonomic-keyboard-mouse', label: 'Ergonomic keyboard and vertical mouse', detail: 'For RSI, arthritis or limited hand and wrist movement' },

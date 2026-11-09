@@ -1,5 +1,5 @@
 import { daysUntil } from './dates'
-import { managerEquipmentSummary } from './equipment'
+import { managerEquipmentSummary, pickedOptions, NO_EQUIPMENT } from './equipment'
 import type { JourneyView, StepView } from './journey'
 import { laptopLabel, laptopOrder } from './laptop'
 import type { JourneyEvent, PulsePayload } from './types'
@@ -67,11 +67,25 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     sharedChoices: [
       ...(kitLabel ? [{ label: 'Laptop', value: kitLabel }] : []),
       ...(headset?.state === 'done' ? [{ label: 'Headset', value: headset.options?.find((o) => o.value === headset.value)?.label ?? 'Chosen' }] : []),
-      ...(equipment?.state === 'done' ? managerEquipmentSummary(equipment) : []),
+      // If the manager agreed these with the joiner in the accessibility conversation, they already know the detail.
+      ...(equipment?.state === 'done'
+        ? equipment.doneBy === 'manager'
+          ? agreedEquipment(equipment)
+          : managerEquipmentSummary(equipment)
+        : []),
     ],
     startDateMoved: moved && moved.kind === 'start-date-moved' ? { from: moved.from, to: moved.to } : undefined,
     pulse: pulseTrend(events, journey),
   }
+}
+
+function agreedEquipment(step: StepView): { label: string; value: string }[] {
+  const picked = pickedOptions(step).filter((o) => o.value !== NO_EQUIPMENT)
+  const by = (assistive: boolean) => picked.filter((o) => (o.group === 'Assistive technology') === assistive).map((o) => o.label).join(', ')
+  return [
+    { label: 'Equipment', value: by(false) },
+    { label: 'Assistive technology', value: by(true) },
+  ].filter((row) => row.value)
 }
 
 function order(s: StepView): number {
