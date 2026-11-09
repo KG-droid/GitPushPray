@@ -4,7 +4,7 @@ import LockRounded from '@mui/icons-material/LockRounded'
 import ChatBubbleRounded from '@mui/icons-material/ChatBubbleRounded'
 import { useNavigate } from 'react-router-dom'
 import { PersonAvatar } from '../../components/PersonAvatar'
-import { managerIntro, introMessage, teammates } from '../../data/people'
+import { askAboutDraft, managerIntro, introMessage, teammates } from '../../data/people'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import type { Person } from '../../domain/types'
@@ -41,6 +41,7 @@ export function PeoplePage() {
           <PersonCard
             person={manager}
             preview={lastMessage(manager, false)}
+            onAsk={(topic) => navigate(`/people/chat/${manager.id}`, { state: { draft: askAboutDraft(manager.name, topic) } })}
             action={<Button variant="outlined" startIcon={<ChatBubbleRounded />} onClick={() => navigate(`/people/chat/${manager.id}`)}>Message {first(manager.name)}</Button>}
           />
         ) : (
@@ -54,6 +55,7 @@ export function PeoplePage() {
             person={buddy}
             highlight
             preview={lastMessage(buddy, true)}
+            onAsk={(topic) => navigate(`/people/chat/${buddy.id}`, { state: { draft: askAboutDraft(buddy.name, topic) } })}
             action={
               <Button
                 variant="contained"
@@ -119,11 +121,14 @@ function PersonCard({
   person,
   preview,
   action,
+  onAsk,
   highlight = false,
 }: {
   person: Person
   preview: string
   action: ReactNode
+  /** Opens the chat with a question about this topic ready to send. */
+  onAsk: (topic: string) => void
   highlight?: boolean
 }) {
   return (
@@ -152,7 +157,7 @@ function PersonCard({
             </Typography>
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, mt: 0.5 }}>
               {person.askMeAbout.map((a) => (
-                <Chip key={a} size="small" label={a} />
+                <Chip key={a} size="small" label={a} onClick={() => onAsk(a)} aria-label={`Ask ${first(person.name)} about ${a}`} />
               ))}
             </Stack>
           </Box>
