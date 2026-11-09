@@ -578,9 +578,11 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'content',
     icon: 'event',
     title: 'Your Day 1 plan',
-    body: 'Where to go, who meets you, and what happens hour by hour.',
+    body: 'Where to go and how to get there, who meets you, your desk next to your buddy or manager, and what happens hour by hour.',
     unlock: { type: 'daysToStart', atMost: 7 },
     lockedHint: 'Unlocks the week before you start.',
+    href: '/journey/day-one',
+    hrefLabel: 'See your Day 1 plan',
   },
   {
     id: 'book-intros',
