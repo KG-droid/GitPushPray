@@ -435,7 +435,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'task',
     icon: 'key',
     title: 'Request system access',
-    body: 'Pre-filled from their role. Review and submit.',
+    body: 'Start from a role profile, or copy a teammate. See what the team has now, adjust, then submit.',
     unlock: { type: 'checksCleared', checks: 'all' },
     lockedHint: 'Access can only be requested once all checks are cleared.',
     dueOffsetDays: -7,

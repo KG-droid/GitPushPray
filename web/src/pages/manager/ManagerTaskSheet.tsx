@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Box, Button, Card, CardActionArea, Drawer, IconButton, Radio, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, Checkbox, Chip, Drawer, FormControlLabel, IconButton, Radio, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
 import { IconTile } from '../../components/IconTile'
 import { PersonAvatar } from '../../components/PersonAvatar'
+import { groupBySystem, holderCounts, itemsFor, joinAccess, parseAccess, profilesFor, teamAccess } from '../../domain/access'
 import { GOAL_SEPARATOR, suggestedGoals } from '../../data/goals'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
@@ -56,6 +57,8 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
             <GoalsForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-assign-buddy' ? (
             <BuddyForm journey={journey} onDone={onClose} />
+          ) : step.id === 'mgr-request-access' ? (
+            <AccessForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-set-device-spec' ? (
             <LaptopSpecForm journey={journey} onDone={onClose} />
           ) : (
@@ -74,8 +77,23 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
     return <LaptopSpecForm journey={journey} current={step.value} onCancel={() => setChanging(false)} onDone={onClose} />
   }
 
+  const accessIds = step.id === 'mgr-request-access' ? parseAccess(step.value) : []
+  const accessItems = itemsFor(journey.persona.jobFamily).filter((i) => accessIds.includes(i.id))
+
   return (
     <Stack spacing={1.5}>
+      {accessItems.length > 0 && (
+        <Box role="region" aria-label="Access requested">
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+            {accessItems.length} access items requested
+          </Typography>
+          {groupBySystem(accessItems).map((g) => (
+            <Typography key={g.system} variant="caption" color="text.secondary" component="div">
+              <strong>{g.system}:</strong> {g.items.map((i) => i.label).join(', ')}
+            </Typography>
+          ))}
+        </Box>
+      )}
       <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
         <CheckCircleRounded fontSize="small" />
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -244,6 +262,125 @@ function LaptopSpecForm({
         </Button>
         {onCancel && <Button onClick={onCancel}>Cancel</Button>}
       </Stack>
+    </Stack>
+  )
+}
+
+/** Pick a role profile or copy a teammate, compare with what the team has, tweak, then request. */
+function AccessForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+  const { completeStep } = useDemo()
+  const family = journey.persona.jobFamily
+  const items = itemsFor(family)
+  const profiles = profilesFor(family)
+  const team = teamAccess(family)
+  const counts = holderCounts(team)
+  const [picked, setPicked] = useState<string[]>(profiles[0].itemIds)
+  const [source, setSource] = useState<string>(profiles[0].id)
+  const name = journey.persona.firstName
+
+  const choose = (id: string, ids: string[]) => {
+    setSource(id)
+    setPicked(ids)
+  }
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
+
+  return (
+    <Stack spacing={2}>
+      <Box role="group" aria-label="Start from">
+        <Typography variant="overline" color="text.secondary">
+          Start from
+        </Typography>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+          {profiles.map((p) => (
+            <Chip key={p.id} label={p.name} color={source === p.id ? 'primary' : 'default'} onClick={() => choose(p.id, p.itemIds)} />
+          ))}
+          {team.map((m) => (
+            <Chip
+              key={m.person.id}
+              label={`Same as ${m.person.name.split(' ')[0]}`}
+              color={source === m.person.id ? 'primary' : 'default'}
+              variant={source === m.person.id ? 'filled' : 'outlined'}
+              onClick={() => choose(m.person.id, m.itemIds)}
+            />
+          ))}
+        </Stack>
+      </Box>
+
+      <Box role="region" aria-label="What your team has now">
+        <Typography variant="overline" color="text.secondary">
+          What your team has now
+        </Typography>
+        <Table size="small" aria-label="Team access matrix">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ px: 0.5 }}>Access</TableCell>
+              {team.map((m) => (
+                <TableCell key={m.person.id} align="center" sx={{ px: 0.5 }} aria-label={m.person.name} title={m.person.name}>
+                  {m.person.name.split(' ').map((w) => w[0]).join('')}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {items.map((i) => (
+              <TableRow key={i.id}>
+                <TableCell sx={{ px: 0.5 }}>
+                  <Typography variant="caption">
+                    {i.system}: {i.label}
+                  </Typography>
+                </TableCell>
+                {team.map((m) => (
+                  <TableCell key={m.person.id} align="center" sx={{ px: 0.5 }}>
+                    <span aria-label={`${m.person.name} ${m.itemIds.includes(i.id) ? 'has' : 'does not have'} ${i.label}`}>{m.itemIds.includes(i.id) ? '✓' : '–'}</span>
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <Typography variant="caption" color="text.secondary">
+          Illustrative demo data. Live data would come from Entra, GitHub and Jira.
+        </Typography>
+      </Box>
+
+      <Box role="group" aria-label={`Access for ${name}`}>
+        <Typography variant="overline" color="text.secondary">
+          Access for {name}
+        </Typography>
+        {groupBySystem(items).map((g) => (
+          <Box key={g.system} sx={{ mb: 0.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+              {g.system}
+            </Typography>
+            {g.items.map((i) => (
+              <FormControlLabel
+                key={i.id}
+                sx={{ display: 'flex', mx: 0 }}
+                control={<Checkbox size="small" checked={picked.includes(i.id)} onChange={() => toggle(i.id)} />}
+                label={
+                  <Typography variant="body2">
+                    {i.label}{' '}
+                    <Typography component="span" variant="caption" color="text.secondary">
+                      · {counts[i.id] ?? 0} of {team.length} teammates
+                    </Typography>
+                  </Typography>
+                }
+              />
+            ))}
+          </Box>
+        ))}
+      </Box>
+
+      <Button
+        variant="contained"
+        disabled={picked.length === 0}
+        onClick={() => {
+          completeStep('mgr-request-access', { by: 'manager', personaId: journey.persona.id, value: joinAccess(items.filter((i) => picked.includes(i.id)).map((i) => i.id)) })
+          onDone()
+        }}
+      >
+        Request access ({picked.length})
+      </Button>
     </Stack>
   )
 }
