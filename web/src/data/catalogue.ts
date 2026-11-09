@@ -336,6 +336,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'A short intro from your manager, what your team does and what your first weeks will look like.',
     unlock: { type: 'daysToStart', atMost: 35 },
     lockedHint: 'Unlocks 5 weeks before you start.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
   {
     id: 'meet-buddy',
@@ -347,6 +349,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Your buddy is a friendly colleague to ask the questions you’d rather not ask your manager.',
     unlock: { type: 'stepDone', stepId: 'mgr-assign-buddy' },
     lockedHint: 'Your manager is matching you with a buddy.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
   {
     id: 'say-hello',
@@ -358,6 +362,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Send a quick hello. Not sure what to say? We’ve suggested a few icebreakers.',
     unlock: { type: 'stepDone', stepId: 'mgr-assign-buddy' },
     lockedHint: 'Unlocks when your buddy is assigned.',
+    href: '/people',
+    hrefLabel: 'Message your buddy',
     minutes: 2,
   },
   {
@@ -370,6 +376,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Faces, names and a fun fact for everyone you’ll be working with.',
     unlock: { type: 'daysToStart', atMost: 14 },
     lockedHint: 'Unlocks 2 weeks before you start.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
 
   // ── Manager ready ───────────────────────────────────────
