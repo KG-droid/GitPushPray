@@ -50,6 +50,7 @@ const laptopOptions: ChoiceOption[] = [
   { value: 'surface-pro', label: 'Surface Pro', detail: '2-in-1 with a detachable keyboard, best if you move between meetings' },
   { value: 'surface-laptop', label: 'Surface Laptop', detail: 'Light, all-day battery, great for hybrid working' },
   { value: 'hp-elitebook-g11', label: 'HP EliteBook G11', detail: 'Full-size keyboard and ports, ideal at a docked desk' },
+  { value: 'macbook-pro', label: 'Apple MacBook Pro', detail: 'Faster and with a brighter screen, for heavier workloads' },
 ]
 
 /** The laptop choice is due, and changes close, two weeks before Day 1 so IT has time to build it. */
@@ -391,7 +392,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'choice',
     icon: 'laptop',
     title: 'Set their laptop spec',
-    body: 'Decide which spec your joiner gets. They then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in that spec.',
+    body: 'Decide which spec your joiner gets. They then choose a Surface, HP EliteBook or Apple MacBook in that spec.',
     audience: { jobFamilies: laptopFamilies },
     unlock: { type: 'always' },
     dueOffsetDays: -21,
