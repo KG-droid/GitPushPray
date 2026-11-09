@@ -1,8 +1,11 @@
-import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Box, Button, Card, CardContent, Chip, FormControlLabel, Radio, RadioGroup, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import ExploreRounded from '@mui/icons-material/ExploreRounded'
+import RouteRounded from '@mui/icons-material/RouteRounded'
 import ChairRounded from '@mui/icons-material/ChairRounded'
 import PlaceRounded from '@mui/icons-material/PlaceRounded'
 import DirectionsTransitRounded from '@mui/icons-material/DirectionsTransitRounded'
-import { dayOneAgenda, dayOneLogistics, siteTravel } from '../../data/dayOne'
+import { dayOneAgenda, dayOneLogistics, deskOptions, minutesBefore, siteTravel, travelOptions, wayfinding } from '../../data/dayOne'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
@@ -12,7 +15,7 @@ const first = (name: string) => name.split(' ')[0]
 
 /** Hour-by-hour plan for the joiner's first day: who meets them, where, their desk and how to get there. */
 export function DayOnePage() {
-  const { journey } = useDemo()
+  const { journey, completeStep } = useDemo()
   const { persona } = journey
   const manager = repository.getPerson(persona.managerId)
   const buddy = persona.buddyId ? repository.getPerson(persona.buddyId) : undefined
@@ -29,7 +32,19 @@ export function DayOnePage() {
   const meeter = logistics.meetWho === 'buddy' ? (buddy ?? manager) : manager
   const deskPerson = logistics.deskNextTo === 'buddy' ? (buddy ?? manager) : manager
   const travel = siteTravel[persona.site]
-  const agenda = dayOneAgenda(persona, logistics)
+
+  // Desk booking: the desk next to the buddy or manager is held by default, and the joiner can swap it.
+  const desks = deskOptions(persona, logistics)
+  const bookedId = journey.steps.find((st) => st.id === 'book-desk')?.value ?? 'near'
+  const booked = desks.find((d) => d.id === bookedId)
+  const [deskPick, setDeskPick] = useState(bookedId)
+  const deskLabel = booked?.label ?? logistics.desk
+  const keptDefault = !booked || booked.id === 'near'
+
+  const routes = persona.workPattern === 'remote' ? [] : (travelOptions[persona.site] ?? [])
+  const route = routes.find((r) => r.id === journey.steps.find((st) => st.id === 'day-one-travel')?.value)
+  const way = wayfinding(persona, logistics, deskLabel)
+  const agenda = dayOneAgenda(persona, { ...logistics, desk: deskLabel })
 
   return (
     <Stack spacing={2.5} sx={{ pt: 1 }}>
@@ -66,7 +81,9 @@ export function DayOnePage() {
                 <Typography variant="subtitle2" component="h2">Your desk</Typography>
                 {logistics.desk && deskPerson ? (
                   <Typography variant="body2" color="text.secondary">
-                    {logistics.desk}, booked next to {first(deskPerson.name)} ({deskPerson.id.startsWith('buddy') ? 'your buddy' : 'your manager'}).
+                    {keptDefault
+                      ? `${logistics.desk}, booked next to ${first(deskPerson.name)} (${deskPerson.id.startsWith('buddy') ? 'your buddy' : 'your manager'}).`
+                      : `${deskLabel}, booked by you for ${formatShortDate(journey.startDate)}.`}
                     {logistics.deskNote ? ` ${logistics.deskNote}` : ''}
                   </Typography>
                 ) : (
@@ -79,6 +96,98 @@ export function DayOnePage() {
           </Stack>
         </CardContent>
       </Card>
+
+      {desks.length > 0 && (
+        <Card>
+          <CardContent sx={{ p: 2 }}>
+            <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>Choose your desk</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              A desk is already held for you. Keep it, or pick one that suits you better.
+            </Typography>
+            <RadioGroup aria-label="Desk for Day 1" value={deskPick} onChange={(e) => setDeskPick(e.target.value)}>
+              {desks.map((d) => (
+                <FormControlLabel
+                  key={d.id}
+                  value={d.id}
+                  control={<Radio />}
+                  sx={{ alignItems: 'flex-start', py: 0.5, '& .MuiRadio-root': { mt: -0.5 } }}
+                  label={
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {d.label} {d.id === bookedId && <Chip component="span" size="small" color="success" label="Booked" sx={{ ml: 0.5 }} />}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">{fill(d.note)}</Typography>
+                    </Box>
+                  }
+                />
+              ))}
+            </RadioGroup>
+            <Button variant="contained" disabled={deskPick === bookedId} onClick={() => completeStep('book-desk', { value: deskPick })} sx={{ mt: 1 }}>
+              Book this desk
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {routes.length > 0 && (
+        <Card>
+          <CardContent sx={{ p: 2 }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 0.5 }}>
+              <RouteRounded color="primary" />
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>Plan your journey</Typography>
+            </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>How will you get in on Day 1?</Typography>
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              size="small"
+              color="primary"
+              aria-label="How you’ll travel"
+              value={route?.id ?? null}
+              onChange={(_, v: string | null) => v && completeStep('day-one-travel', { value: v })}
+            >
+              {routes.map((r) => (
+                <ToggleButton key={r.id} value={r.id} sx={{ minHeight: 44 }}>{r.mode}</ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+            {route && (
+              <Box role="region" aria-label="Your journey" sx={{ mt: 1.5 }}>
+                <Typography variant="subtitle2">
+                  Be at {route.from} by {minutesBefore(logistics.arriveBy, route.minutes + 5)}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  About {route.minutes} minutes to the front door, with 5 to spare. {route.route}
+                </Typography>
+                {route.tip && <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 0.5 }}>{route.tip}</Typography>}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {way && (
+        <Card>
+          <CardContent sx={{ p: 2 }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
+              <ExploreRounded color="primary" />
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>Finding your way</Typography>
+            </Stack>
+            <Box component="ol" aria-label="From the door to your desk" sx={{ m: 0, mb: 1.5, pl: 2.5 }}>
+              {way.steps.map((st) => (
+                <Typography key={st} component="li" variant="body2" sx={{ mb: 0.5 }}>{fill(st)}</Typography>
+              ))}
+            </Box>
+            <Typography variant="subtitle2">Handy places</Typography>
+            <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+              {way.nearby.map((n) => (
+                <Typography key={n.place} variant="body2" color="text.secondary">
+                  <Box component="span" sx={{ color: 'text.primary', fontWeight: 600 }}>{n.place}:</Box> {n.where}
+                </Typography>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       <Box>
         <Typography variant="overline" color="text.secondary">The day</Typography>
@@ -134,7 +243,7 @@ export function DayOnePage() {
       )}
 
       <Typography variant="caption" color="text.secondary">
-        Desks, times and meeting points are illustrative for the demo. {manager ? first(manager.name) : 'Your manager'} will confirm them before you start.
+        Desks, routes, directions, times and meeting points are examples for the demo. {manager ? first(manager.name) : 'Your manager'} will confirm them before you start.
       </Typography>
     </Stack>
   )

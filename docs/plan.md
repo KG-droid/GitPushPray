@@ -56,6 +56,7 @@ All names, people and policies are fictional.
 - **J4 Choices:** laptop (by job family: the manager sets the spec, standard or developer, then the joiner picks a Surface Pro, Surface Laptop or HP EliteBook G11), benefits, pay and rewards (salary sacrifice options, pension), and learning picks. These are cards with a selected state. Making a choice raises an event, e.g. kit chosen → a "device ordered" step appears on the manager's list.
 - **J5 Unlocked content:** a feed of content filtered by persona, such as location guides (site, transport, community), team handbook and software guides. Each item has an "Unlocked because…" chip.
 - **J6 Day 1 to Week 1:** guided prompts: book stakeholder intros (one-tap suggested slots), start mandatory training (with progress), join comms channels, and the week-1 1:1 with the manager.
+- **J6a Day 1 plan** (`/journey/day-one`): who meets you and where, the hour-by-hour day, and three things to sort in advance. **Choose your desk** (the one next to your buddy or manager is already held, or swap it for a window or quiet-zone desk; hybrid office roles only), **Plan your journey** (pick train, bus, cycle or car and get the last leg to the front door and a time to be there by) and **Finding your way** (door-to-desk directions and handy places). Desks, routes and directions are example data for the demo.
 - **J7 Day-30 check-in:** a two-question pulse ("I know who to ask", "I feel confident in my role"), the connection signals so far, and a celebration screen.
 
 ### People tab (meet before you meet)
