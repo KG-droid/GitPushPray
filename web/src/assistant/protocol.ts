@@ -9,6 +9,20 @@ export interface ChatTurn {
   content: string
 }
 
+/** Where the joiner is in their own journey: titles and dates from the app, never check results or answers. */
+export interface JourneyProgress {
+  stepsDone: number
+  stepsTotal: number
+  /** Only how many are cleared and when the last is expected, never which ones or why */
+  checks: { cleared: number; total: number; expectedBy?: string }
+  /** Waiting on the joiner now */
+  todo: { title: string; due?: string }[]
+  /** Not available yet, and what unlocks it */
+  locked: { title: string; unlocksWhen: string }[]
+  /** Waiting on their manager or buddy */
+  team: { title: string; who: 'manager' | 'buddy'; due?: string }[]
+}
+
 /** What the assistant knows about the joiner. Deliberately small: no checks results, no contact details. */
 export interface JoinerContext {
   firstName: string
@@ -22,6 +36,7 @@ export interface JoinerContext {
   currentStage: string
   managerName?: string
   buddyName?: string
+  progress?: JourneyProgress
 }
 
 export interface AskRequest {

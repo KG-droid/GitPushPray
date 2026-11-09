@@ -18,6 +18,7 @@ import { AskPage } from './pages/joiner/AskPage'
 import { ManagerHomePage } from './pages/manager/ManagerHomePage'
 import { ManagerJoinerPage } from './pages/manager/ManagerJoinerPage'
 import { FeedbackPage } from './pages/explore/FeedbackPage'
+import { GlossaryPage } from './pages/explore/GlossaryPage'
 import { AdminPage } from './pages/admin/AdminPage'
 import { BuddyPage } from './pages/buddy/BuddyPage'
 
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/explore/accessibility" element={<AccessibilityPage />} />
         <Route path="/explore/line-manager" element={<LineManagerPage />} />
         <Route path="/explore/feedback" element={<FeedbackPage />} />
+        <Route path="/explore/glossary" element={<GlossaryPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/people/chat/:personId" element={<ChatPage />} />
         <Route path="/ask" element={<AskPage />} />

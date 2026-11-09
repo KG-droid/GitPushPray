@@ -46,7 +46,8 @@ export function AppShell() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const current = joinerTabs.findIndex((t) => pathname.startsWith(t.path))
-  const { setPanelOpen, toast, clearToast, role, journey } = useDemo()
+  const { setPanelOpen, toast, clearToast, role, journey, barOpen, setBarOpen } = useDemo()
+  const barHeight = barOpen ? DEMO_BAR_HEIGHT : 0
   const isTeamView = role !== 'joiner'
   const viewerId = role === 'buddy' ? journey.persona.buddyId : journey.persona.managerId
   const viewerName = role === 'admin' ? 'People experience' : (viewerId ? repository.getPerson(viewerId)?.name.split(' ')[0] : undefined) ?? ''
@@ -79,7 +80,7 @@ export function AppShell() {
           position="sticky"
           color="inherit"
           elevation={0}
-          sx={{ bgcolor: 'background.default', top: `calc(${DEMO_BAR_HEIGHT}px + env(safe-area-inset-top))` }}
+          sx={{ bgcolor: 'background.default', top: `calc(${barHeight}px + env(safe-area-inset-top))` }}
         >
           <Toolbar sx={{ justifyContent: 'space-between' }}>
             {/* Long-press the logo (or press Shift+D) to open the presenter's demo controls. */}
@@ -97,6 +98,9 @@ export function AppShell() {
                   onClick={() => setPanelOpen(true)}
                 />
               )}
+              {!barOpen && (
+                <Chip size="small" variant="outlined" label="Demo" aria-label="Show demo controls" onClick={() => setBarOpen(true)} />
+              )}
               <ThemeModeButton />
             </Stack>
           </Toolbar>
@@ -111,11 +115,11 @@ export function AppShell() {
                 width: SIDEBAR_WIDTH,
                 flexShrink: 0,
                 position: 'sticky',
-                top: `calc(${DEMO_BAR_HEIGHT}px + 64px + env(safe-area-inset-top))`,
+                top: `calc(${barHeight}px + 64px + env(safe-area-inset-top))`,
                 p: 2,
                 borderRight: 1,
                 borderColor: 'divider',
-                minHeight: `calc(100dvh - ${DEMO_BAR_HEIGHT}px - 64px)`,
+                minHeight: `calc(100dvh - ${barHeight}px - 64px)`,
               }}
             >
               <List disablePadding>

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { repository } from '../../data/repository'
@@ -65,5 +65,25 @@ describe('Admin insights', () => {
     renderApp('/admin', { role: 'admin' })
     await screen.findByRole('heading', { name: 'Joiner insights' })
     expect(screen.getByText(/no names and no question text/)).toBeInTheDocument()
+  })
+})
+
+describe('Admin: requests for a person', () => {
+  it('shows what joiners sent to HR Direct and screening', async () => {
+    renderApp('/admin', { role: 'admin' })
+    expect(screen.getByText(/Nothing waiting/)).toBeInTheDocument()
+
+    act(() => {
+      repository.addEvent({
+        personaId: 'rhys',
+        type: 'handover_sent',
+        at: '2026-11-09T10:00:00Z',
+        payload: { route: 'hr', summary: 'Rhys has a question about his contract.' },
+      })
+    })
+    const list = await screen.findByRole('list', { name: 'Requests for HR Direct and screening' })
+    expect(within(list).getByText('Rhys Evans')).toBeInTheDocument()
+    expect(within(list).getByText('HR Direct')).toBeInTheDocument()
+    expect(within(list).getByText(/question about his contract/)).toBeInTheDocument()
   })
 })

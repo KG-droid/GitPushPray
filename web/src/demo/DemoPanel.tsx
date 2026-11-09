@@ -12,9 +12,12 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { repository } from '../data/repository'
 import { addDays, formatShortDate } from '../domain/dates'
+import { planCatchUp } from './catchUp'
+import { SharePanel } from './SharePanel'
 import { useDemo, type DemoRole } from './useDemo'
 
 /** Presenter-only controls. Opened by long-pressing the logo. */
@@ -25,6 +28,17 @@ export function DemoPanel() {
   const navigate = useNavigate()
   const managerName = repository.getPerson(persona.managerId)?.name.split(' ')[0] ?? 'Manager'
   const buddyName = persona.buddyId ? repository.getPerson(persona.buddyId)?.name.split(' ')[0] : undefined
+
+  // How many steps "Catch up" would complete. Only worked out while the panel is open.
+  const pending = useMemo(
+    () =>
+      demo.panelOpen
+        ? planCatchUp({ persona, events: repository.listEvents(persona.id), today: demo.today, steps: repository.listSteps(), checks: repository.listChecks() }).length
+        : 0,
+    // journey changes whenever events or the date do
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [demo.panelOpen, journey],
+  )
 
   const timePoints = [
     { label: 'Real today', date: null },
@@ -126,6 +140,12 @@ export function DemoPanel() {
             />
           ))}
         </Stack>
+        <Button fullWidth variant="outlined" sx={{ mt: 1.5 }} disabled={pending === 0} onClick={() => demo.catchUp()}>
+          {pending ? `Catch up to this date (${pending} step${pending === 1 ? '' : 's'})` : 'Nothing to catch up'}
+        </Button>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          Marks everything due by this date as done, so the app looks lived-in. Leaves the check-ins for you to do live.
+        </Typography>
 
         <Divider sx={{ my: 2 }} />
 
@@ -148,6 +168,10 @@ export function DemoPanel() {
             Reset {persona.firstName}’s journey
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 2 }} />
+
+        <SharePanel />
       </Box>
     </Drawer>
   )

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import {
   Box,
+  Button,
+  Chip,
   Card,
   CardActionArea,
   CardContent,
@@ -20,6 +22,8 @@ import { useDemo } from '../../demo/useDemo'
 import { countdownLabel, daysUntil, formatShortDate } from '../../domain/dates'
 import { NoticeCard } from '../../components/NoticeCard'
 import { FeedbackPrompt } from '../../components/FeedbackPrompt'
+import { GlossaryText } from '../../components/GlossaryText'
+import { Day30Celebration } from '../../components/Day30Celebration'
 
 function greeting() {
   const h = new Date().getHours()
@@ -55,6 +59,8 @@ export function TodayPage() {
 
       <CountdownCard />
 
+      {journey.steps.find((s) => s.id === 'day-30-checkin')?.state === 'done' && <Day30Celebration />}
+
       <FeedbackPrompt />
 
       <Box>
@@ -70,11 +76,30 @@ export function TodayPage() {
                   <Typography variant="h6" sx={{ lineHeight: 1.3 }}>
                     {nextAction.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-                    {nextAction.body}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mt: 0.5,
+                      mb: 2,
+                      // A choice opens in its own sheet, so the card only needs the gist.
+                      ...(nextAction.kind === 'choice' && { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }),
+                    }}
+                  >
+                    {nextAction.kind === 'choice' ? nextAction.body : <GlossaryText text={nextAction.body} />}
                   </Typography>
-                  {/* key resets any half-made choice when the next action changes */}
-                  <StepActions key={nextAction.id} step={nextAction} />
+                  {nextAction.kind === 'choice' ? (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+                      <Button variant="contained" onClick={() => setOpenStep(nextAction.id)}>
+                        Choose now
+                      </Button>
+                      {nextAction.minutes && <Chip size="small" label={`${nextAction.minutes} min`} />}
+                      {nextAction.dueDate && <Chip size="small" variant="outlined" label={`By ${formatShortDate(nextAction.dueDate)}`} />}
+                    </Stack>
+                  ) : (
+                    // key resets any half-filled form when the next action changes
+                    <StepActions key={nextAction.id} step={nextAction} />
+                  )}
                 </Box>
               </Stack>
             </CardContent>
@@ -111,7 +136,11 @@ export function TodayPage() {
                       <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
                         {s.title}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                      >
                         {s.body}
                       </Typography>
                     </Box>

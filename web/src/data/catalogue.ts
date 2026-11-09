@@ -182,6 +182,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepDone', stepId: 'mgr-set-device-spec' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your laptop spec.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question, we’ve confirmed your ID and right to work, and your manager has set your laptop spec. If you’ve asked for support, your manager will agree your laptop with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
@@ -206,6 +207,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your ID check.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree your headset with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
@@ -229,6 +231,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your ID check.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree this with you in a conversation instead.',
     minutes: 1,
@@ -557,6 +560,18 @@ export const stepCatalogue: StepDefinition[] = [
     unlock: { type: 'always' },
     dueOffsetDays: -7,
     minutes: 10,
+  },
+  {
+    id: 'mgr-plan-week-one',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'task',
+    icon: 'event',
+    title: 'Plan their first week',
+    body: 'Pick the sessions that will make the first week count. They appear in the joiner’s Day 1 plan and calendar.',
+    unlock: { type: 'always' },
+    dueOffsetDays: -5,
+    minutes: 5,
   },
   {
     id: 'welcome-pack',

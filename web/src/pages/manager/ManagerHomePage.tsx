@@ -1,5 +1,7 @@
-import { Box, Card, CardActionArea, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
+import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
+import ForumRounded from '@mui/icons-material/ForumRounded'
 import EventRepeatRounded from '@mui/icons-material/EventRepeatRounded'
 import RocketLaunchRounded from '@mui/icons-material/RocketLaunchRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
@@ -40,7 +42,7 @@ export function ManagerHomePage() {
           </Typography>
           <Box sx={cardGridSx}>
             {nudges.slice(0, 4).map((n, i) => (
-              <NudgeCard key={i} nudge={n} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
+              <NudgeCard key={i} nudge={n} highlight={i === 0} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
             ))}
           </Box>
         </Box>
@@ -74,6 +76,7 @@ export function ManagerHomePage() {
                     </Stack>
                     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                       <StatusChip status={v.status} />
+                      {v.quiet?.status === 'quiet' && <Chip size="small" color="warning" variant="outlined" label="Gone quiet" />}
                       <LinearProgress
                         variant="determinate"
                         value={v.tasks.length ? (v.tasksDone / v.tasks.length) * 100 : 100}
@@ -95,9 +98,22 @@ export function ManagerHomePage() {
   )
 }
 
-function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
+const listNames = (names: string[]) => (names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`)
+
+function NudgeCard({ nudge, onOpen, highlight }: { nudge: Nudge; onOpen: () => void; highlight: boolean }) {
   const content =
-    nudge.kind === 'first-week'
+    nudge.kind === 'asked-for-you'
+      ? { icon: <ForumRounded color="secondary" />, title: `${nudge.name} asked for you`, body: nudge.summary }
+      : nudge.kind === 'gone-quiet'
+      ? {
+          icon: <HourglassEmptyRounded color="warning" />,
+          title: `${listNames(nudge.names)} ${nudge.names.length === 1 ? 'has' : 'have'} gone quiet`,
+          body:
+            nudge.names.length === 1
+              ? `No activity for ${nudge.quietDays} days. A quick hello makes a difference.`
+              : `No activity for a week or more. A quick hello to each makes a difference.`,
+        }
+      : nudge.kind === 'first-week'
       ? {
           icon: <RocketLaunchRounded color="secondary" />,
           title: `${nudge.name} starts ${nudge.daysToStart === 1 ? 'tomorrow' : `in ${nudge.daysToStart} days`}`,
@@ -116,7 +132,7 @@ function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
           }
 
   return (
-    <Card sx={nudge.kind === 'first-week' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
+    <Card sx={highlight ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
       <CardActionArea onClick={onOpen}>
         <CardContent sx={{ display: 'flex', gap: 1.75, alignItems: 'center', py: 1.75 }}>
           <IconTile icon={content.icon} />

@@ -122,3 +122,32 @@ describe('Accessibility and inclusion', () => {
     expect(screen.getByText(/ask at any time/)).toBeInTheDocument()
   })
 })
+
+describe('Jargon buster', () => {
+  it('explains a term tapped inside a step', async () => {
+    const user = userEvent.setup()
+    renderApp('/journey', { personaId: 'margaret' })
+    await user.click(screen.getByText('Review your Statement of Responsibilities'))
+    const sheet = await screen.findByRole('dialog', { name: 'Review your Statement of Responsibilities' })
+    await user.click(within(sheet).getByRole('button', { name: 'Statement of Responsibilities' }))
+    const explain = await screen.findByRole('dialog', { name: 'What is Statement of Responsibilities?' })
+    expect(within(explain).getByText(/exactly what a senior manager is accountable for/)).toBeInTheDocument()
+  })
+
+  it('has a searchable page of every term, reached from Explore', async () => {
+    const user = userEvent.setup()
+    renderApp('/explore')
+    await user.click(screen.getByText('Jargon buster'))
+    expect(await screen.findByRole('heading', { name: 'Jargon buster' })).toBeInTheDocument()
+
+    const all = within(screen.getByRole('list', { name: 'Terms' })).getAllByRole('listitem').length
+    await user.type(screen.getByRole('searchbox', { name: 'Search terms' }), 'pension')
+    const found = within(screen.getByRole('list', { name: 'Terms' })).getAllByRole('listitem')
+    expect(found.length).toBeGreaterThan(0)
+    expect(found.length).toBeLessThan(all)
+
+    await user.clear(screen.getByRole('searchbox', { name: 'Search terms' }))
+    await user.type(screen.getByRole('searchbox', { name: 'Search terms' }), 'zzzz')
+    expect(screen.getByText(/Nothing matches/)).toBeInTheDocument()
+  })
+})

@@ -2,7 +2,9 @@ import { createReadStream, existsSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createGuard } from './guard.ts'
 import { handleApi } from './http.ts'
+import { createSessionStore } from './sessions.ts'
 
 /**
  * Production server: serves the built PWA and the /api endpoints from one process.
@@ -12,7 +14,20 @@ import { handleApi } from './http.ts'
 const here = fileURLToPath(new URL('.', import.meta.url))
 const root = resolve(process.env.STATIC_DIR ?? join(here, '..', 'dist'))
 const port = Number(process.env.PORT ?? 8080)
-const config = { apiKey: process.env.ANTHROPIC_API_KEY, model: process.env.ASSISTANT_MODEL }
+const config = {
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: process.env.ASSISTANT_MODEL,
+  insightsLive: process.env.INSIGHTS_LIVE === '1',
+}
+// Live Claude needs the demo access code (the QR link carries it); everything else gets scripted answers.
+const guard = createGuard({
+  accessCode: process.env.DEMO_ACCESS_CODE || undefined,
+  perIpPerMinute: Number(process.env.RATE_LIMIT_PER_MINUTE) || undefined,
+  dailyTotal: Number(process.env.DAILY_LIVE_LIMIT) || undefined,
+})
+
+// Shared demo sessions survive restarts if DATA_DIR points somewhere that persists (/home/data on App Service).
+const sessions = createSessionStore({ file: process.env.DATA_DIR ? join(process.env.DATA_DIR, 'sessions.json') : undefined })
 
 const types: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -33,7 +48,7 @@ const server = createServer(async (req, res) => {
   res.setHeader('X-Frame-Options', 'DENY')
 
   try {
-    if (await handleApi(req, res, config)) return
+    if (await handleApi(req, res, config, guard, sessions)) return
   } catch (error) {
     console.error('[api]', error)
     if (!res.headersSent) res.statusCode = 500
@@ -71,4 +86,5 @@ const server = createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`LBG Joiner Companion on :${port} (assistant ${config.apiKey ? 'live' : 'offline'})`)
+  if (config.apiKey && !process.env.DEMO_ACCESS_CODE) console.warn('DEMO_ACCESS_CODE is not set: anyone can use the live assistant, within the rate limits.')
 })

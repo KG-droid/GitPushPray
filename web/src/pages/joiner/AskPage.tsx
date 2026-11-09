@@ -32,12 +32,12 @@ const blink = keyframes`50% { opacity: 0; }`
 
 function suggestions(j: JoinerContext): string[] {
   const list = [
+    j.daysToStart > 0 ? 'What’s left for me to do before I start?' : 'What should I do this week?',
     j.workPattern === 'branch' ? 'What do I wear in branch?' : 'What should I wear on Day 1?',
     j.workPattern === 'hybrid' ? 'Can I work from home in my first week?' : 'Where will I be working?',
     'When will I get paid?',
     j.daysToStart > 0 ? (j.isSmcr ? 'Why is my regulatory reference taking so long?' : 'Why are my references taking so long?') : 'What training do I need to do?',
     'I’m a bit worried something might come up in my checks',
-    'Who will be my buddy in the first few weeks?',
   ]
   return list
 }
@@ -120,7 +120,7 @@ export function AskPage() {
           m.role === 'user' ? <UserBubble key={m.id} text={m.text} /> : <AssistantBubble key={m.id} message={m} joiner={joiner} onSendHandover={() => void sendHandover(m.id)} />,
         )}
         {/* scroll-margin keeps the newest message clear of the composer and tabs */}
-        <Box ref={endRef} sx={{ scrollMarginBottom: 'calc(140px + env(safe-area-inset-bottom))' }} />
+        <Box ref={endRef} sx={{ scrollMarginBottom: 'calc(180px + env(safe-area-inset-bottom))' }} />
       </Stack>
 
       {/* Composer, pinned above the bottom tabs */}
@@ -138,12 +138,15 @@ export function AskPage() {
           zIndex: (t) => t.zIndex.appBar - 1,
         }}
       >
+        <Chip
+          size="small"
+          variant="outlined"
+          icon={<SupportAgentRounded />}
+          label="Talk to a person"
+          onClick={(e) => setPersonMenu(e.currentTarget)}
+          sx={{ mb: 1 }}
+        />
         <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-end' }}>
-          <Tooltip title="Talk to a person">
-            <IconButton aria-label="Talk to a person" onClick={(e) => setPersonMenu(e.currentTarget)}>
-              <SupportAgentRounded />
-            </IconButton>
-          </Tooltip>
           <InputBase
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

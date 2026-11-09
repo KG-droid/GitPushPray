@@ -13,6 +13,8 @@ import { formatShortDate } from '../../domain/dates'
 import type { JourneyView, StepView } from '../../domain/journey'
 import { joinPicks, NO_EQUIPMENT, parsePicks, togglePick } from '../../domain/equipment'
 import { laptopLabel, laptopOrder, suggestedLaptopSpec } from '../../domain/laptop'
+import { weekOneItems } from '../../data/weekOne'
+import { joinPlan, plannedWeekOne, recommendedIds, WEEK_ONE_STEP, workingDay } from '../../domain/weekOne'
 
 /** Bottom sheet for one of the manager's tasks. Setting goals and assigning a buddy get their own forms. */
 export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: JourneyView; stepId: string | null; onClose: () => void }) {
@@ -58,6 +60,8 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
             <GoalsForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-assign-buddy' ? (
             <BuddyForm journey={journey} onDone={onClose} />
+          ) : step.id === WEEK_ONE_STEP ? (
+            <WeekOneForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-request-access' ? (
             <AccessForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-set-device-spec' ? (
@@ -80,6 +84,7 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
     return <LaptopSpecForm journey={journey} current={step.value} onCancel={() => setChanging(false)} onDone={onClose} />
   }
 
+  const planned = step.id === WEEK_ONE_STEP ? plannedWeekOne(journey) : undefined
   const accessIds = step.id === 'mgr-request-access' ? parseAccess(step.value) : []
   const accessItems = itemsFor(journey.persona.jobFamily).filter((i) => accessIds.includes(i.id))
 
@@ -97,10 +102,19 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
           ))}
         </Box>
       )}
+      {planned && (
+        <Box component="ul" aria-label="Planned sessions" sx={{ m: 0, pl: 2.5 }}>
+          {planned.map((i) => (
+            <Typography key={i.id} component="li" variant="body2">
+              {formatShortDate(i.date)}, {i.time}: {i.title}
+            </Typography>
+          ))}
+        </Box>
+      )}
       <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
         <CheckCircleRounded fontSize="small" />
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
+          {planned ? `${planned.length} session${planned.length === 1 ? '' : 's'} planned` : step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
           {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
         </Typography>
       </Stack>
@@ -156,6 +170,56 @@ function GoalsForm({ journey, onDone }: { journey: JourneyView; onDone: () => vo
         }}
       >
         Set goals and send welcome pack
+      </Button>
+    </Stack>
+  )
+}
+
+function WeekOneForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+  const { completeStep } = useDemo()
+  const items = weekOneItems[journey.persona.jobFamily]
+  const [picked, setPicked] = useState<string[]>(() => recommendedIds(journey.persona.jobFamily))
+  const name = journey.persona.firstName
+
+  return (
+    <Stack spacing={1}>
+      <Typography variant="body2" color="text.secondary">
+        Day 1 is already planned. Pick what {name} does for the rest of the week. We’ve ticked the ones that work best for a {journey.persona.role.toLowerCase()}.
+      </Typography>
+      {items.map((i) => (
+        <FormControlLabel
+          key={i.id}
+          sx={{ alignItems: 'flex-start', mr: 0 }}
+          control={
+            <Checkbox
+              size="small"
+              checked={picked.includes(i.id)}
+              onChange={() => setPicked((ps) => (ps.includes(i.id) ? ps.filter((p) => p !== i.id) : [...ps, i.id]))}
+            />
+          }
+          label={
+            <Box sx={{ pt: 0.5 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {i.title}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" component="div">
+                {formatShortDate(workingDay(journey.startDate, i.day))}, {i.time} · {i.minutes} min · {i.detail}
+              </Typography>
+            </Box>
+          }
+        />
+      ))}
+      <Button
+        variant="contained"
+        sx={{ mt: 1 }}
+        disabled={picked.length === 0}
+        onClick={() => {
+          // Keep the catalogue's order, whatever order they were ticked in.
+          completeStep(WEEK_ONE_STEP, { by: 'manager', personaId: journey.persona.id, value: joinPlan(items.filter((i) => picked.includes(i.id)).map((i) => i.id)) })
+          onDone()
+        }}
+      >
+        Add to {name}’s first week
       </Button>
     </Stack>
   )
