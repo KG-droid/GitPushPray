@@ -1,11 +1,15 @@
-import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
+import EventRounded from '@mui/icons-material/EventRounded'
+import ChatRounded from '@mui/icons-material/ChatRounded'
 import ChairRounded from '@mui/icons-material/ChairRounded'
 import PlaceRounded from '@mui/icons-material/PlaceRounded'
 import DirectionsTransitRounded from '@mui/icons-material/DirectionsTransitRounded'
 import { dayOneAgenda, dayOneLogistics, siteTravel } from '../../data/dayOne'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
+import { dayOneEntries, downloadFile, toIcs } from '../../domain/calendar'
 import { formatShortDate } from '../../domain/dates'
+import { teamsChatLink } from '../../domain/teams'
 import { SubPageHeader } from '../explore/SubPageHeader'
 
 const first = (name: string) => name.split(' ')[0]
@@ -31,6 +35,19 @@ export function DayOnePage() {
   const travel = siteTravel[persona.site]
   const agenda = dayOneAgenda(persona, logistics)
 
+  const addToCalendar = () => {
+    const entries = dayOneEntries(
+      journey.startDate,
+      agenda.map((a) => ({ ...a, title: fill(a.title), detail: fill(a.detail) })),
+      persona.workPattern === 'remote' ? 'Online' : persona.location,
+    )
+    downloadFile('day-1-plan.ics', toIcs(entries, { name: `Your Day 1 at Lloyds Banking Group` }))
+  }
+  const teamsPeople = [
+    ...(buddy ? [{ person: buddy, hello: `Hi ${first(buddy.name)}, it’s ${persona.firstName}. Really looking forward to meeting you on ${formatShortDate(journey.startDate)}!` }] : []),
+    ...(manager ? [{ person: manager, hello: `Hi ${first(manager.name)}, it’s ${persona.firstName}. Looking forward to getting started on ${formatShortDate(journey.startDate)}.` }] : []),
+  ]
+
   return (
     <Stack spacing={2.5} sx={{ pt: 1 }}>
       <SubPageHeader
@@ -49,6 +66,25 @@ export function DayOnePage() {
           </Typography>
         </CardContent>
       </Card>
+
+      <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+        <Button variant="contained" startIcon={<EventRounded />} onClick={addToCalendar}>
+          Add Day 1 to my calendar
+        </Button>
+        {teamsPeople.map(({ person, hello }) => (
+          <Button
+            key={person.id}
+            variant="outlined"
+            startIcon={<ChatRounded />}
+            component="a"
+            href={teamsChatLink(person.name, hello)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Message {first(person.name)} on Teams
+          </Button>
+        ))}
+      </Stack>
 
       <Card>
         <CardContent sx={{ p: 2 }}>
@@ -134,7 +170,7 @@ export function DayOnePage() {
       )}
 
       <Typography variant="caption" color="text.secondary">
-        Desks, times and meeting points are illustrative for the demo. {manager ? first(manager.name) : 'Your manager'} will confirm them before you start.
+        Desks, times and meeting points are illustrative for the demo, and the Teams links open a chat with a made-up address. {manager ? first(manager.name) : 'Your manager'} will confirm them before you start.
       </Typography>
     </Stack>
   )

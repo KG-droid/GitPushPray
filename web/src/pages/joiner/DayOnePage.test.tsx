@@ -13,6 +13,15 @@ describe('Day 1 plan', () => {
     expect(screen.getByText(/Bike storage/)).toBeInTheDocument()
   })
 
+  it('offers a calendar file and Teams messages to the buddy and manager', () => {
+    renderApp('/journey/day-one')
+    expect(screen.getByRole('button', { name: 'Add Day 1 to my calendar' })).toBeInTheDocument()
+    const buddy = screen.getByRole('link', { name: 'Message Chloe on Teams' })
+    expect(buddy).toHaveAttribute('href', expect.stringContaining('users=chloe.whitfield%40lbg-demo.example'))
+    expect(buddy).toHaveAttribute('target', '_blank')
+    expect(screen.getByRole('link', { name: 'Message Daniel on Teams' })).toBeInTheDocument()
+  })
+
   it('needs no desk or travel for a home-based joiner', () => {
     renderApp('/journey/day-one', { personaId: 'sam' })
     expect(screen.getByText(/no desk is needed/)).toBeInTheDocument()
