@@ -49,6 +49,8 @@ export interface Persona {
   offerAcceptedOn: string
   software: string[]
   isSmcr: boolean
+  /** Joining to lead a team for the first time at the bank (or for the first time at all) */
+  isPeopleManager?: boolean
   managerId: string
   buddyId?: string
   recruiterId: string
@@ -129,6 +131,7 @@ export interface Audience {
   workPatterns?: WorkPattern[]
   software?: string[]
   smcr?: boolean
+  peopleManager?: boolean
 }
 
 export type UnlockRule =
