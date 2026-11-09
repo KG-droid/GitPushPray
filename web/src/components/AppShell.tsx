@@ -1,6 +1,22 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { AppBar, BottomNavigation, BottomNavigationAction, Box, Chip, Paper, Snackbar, Stack, Toolbar } from '@mui/material'
+import {
+  AppBar,
+  BottomNavigation,
+  BottomNavigationAction,
+  Box,
+  Chip,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+  Snackbar,
+  Stack,
+  Toolbar,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material'
 import BadgeRounded from '@mui/icons-material/BadgeRounded'
 import { repository } from '../data/repository'
 import WbSunnyRounded from '@mui/icons-material/WbSunnyRounded'
@@ -14,6 +30,7 @@ import { DemoPanel } from '../demo/DemoPanel'
 import { DemoBar, DEMO_BAR_HEIGHT } from '../demo/DemoBar'
 import { useDemo } from '../demo/useDemo'
 import { useLongPress } from './useLongPress'
+import { CONTENT_WIDTH, PHONE_WIDTH, SIDEBAR_WIDTH } from './layout'
 
 const joinerTabs = [
   { path: '/today', label: 'Today', icon: <WbSunnyRounded /> },
@@ -23,8 +40,9 @@ const joinerTabs = [
   { path: '/ask', label: 'Ask', icon: <AutoAwesomeRounded /> },
 ] as const
 
-/** Phone-width shell: top bar, scrolling content, bottom tabs. Centred as a phone column on desktop. */
+/** Responsive shell: a phone column with bottom tabs, or from md up a full-width page with a left nav rail. */
 export function AppShell() {
+  const isDesktop = useMediaQuery(useTheme().breakpoints.up('md'))
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const current = joinerTabs.findIndex((t) => pathname.startsWith(t.path))
@@ -48,13 +66,13 @@ export function AppShell() {
       <DemoBar />
       <Box
         sx={{
-          maxWidth: 440,
+          maxWidth: { xs: PHONE_WIDTH, md: 'none' },
           mx: 'auto',
           minHeight: '100dvh',
           bgcolor: 'background.default',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: { sm: 6 },
+          boxShadow: { sm: 6, md: 0 },
         }}
       >
         <AppBar
@@ -84,11 +102,53 @@ export function AppShell() {
           </Toolbar>
         </AppBar>
 
-        <Box component="main" sx={{ flex: 1, px: 2, pb: isTeamView ? 4 : 12 }}>
-          <Outlet />
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'flex-start' }}>
+          {!isTeamView && isDesktop && (
+            <Box
+              component="nav"
+              aria-label="Main"
+              sx={{
+                width: SIDEBAR_WIDTH,
+                flexShrink: 0,
+                position: 'sticky',
+                top: `calc(${DEMO_BAR_HEIGHT}px + 64px + env(safe-area-inset-top))`,
+                p: 2,
+                borderRight: 1,
+                borderColor: 'divider',
+                minHeight: `calc(100dvh - ${DEMO_BAR_HEIGHT}px - 64px)`,
+              }}
+            >
+              <List disablePadding>
+                {joinerTabs.map((t, i) => (
+                  <ListItemButton
+                    key={t.path}
+                    selected={(current === -1 ? 0 : current) === i}
+                    onClick={() => navigate(t.path)}
+                    sx={{ borderRadius: 3, mb: 0.5 }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>{t.icon}</ListItemIcon>
+                    <ListItemText primary={t.label} />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Box>
+          )}
+          <Box
+            component="main"
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              maxWidth: { md: CONTENT_WIDTH },
+              mx: 'auto',
+              px: { xs: 2, md: 4 },
+              pb: isTeamView ? 4 : { xs: 12, md: 6 },
+            }}
+          >
+            <Outlet />
+          </Box>
         </Box>
 
-        {!isTeamView && (
+        {!isTeamView && !isDesktop && (
         <Paper
           elevation={0}
           sx={{
@@ -96,7 +156,7 @@ export function AppShell() {
             bottom: 0,
             left: 0,
             right: 0,
-            maxWidth: 440,
+            maxWidth: PHONE_WIDTH,
             mx: 'auto',
             borderTop: 1,
             borderColor: 'divider',
@@ -122,7 +182,11 @@ export function AppShell() {
           onClose={clearToast}
           message={toast}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          sx={{ bottom: isTeamView ? undefined : 'calc(84px + env(safe-area-inset-bottom)) !important' }}
+          sx={{
+            bottom: isTeamView
+              ? undefined
+              : { xs: 'calc(84px + env(safe-area-inset-bottom)) !important', md: '24px !important' },
+          }}
         />
       </Box>
     </Box>

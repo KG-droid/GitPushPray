@@ -5,6 +5,7 @@ import RocketLaunchRounded from '@mui/icons-material/RocketLaunchRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
 import { useNavigate } from 'react-router-dom'
 import { IconTile } from '../../components/IconTile'
+import { cardGridSx } from '../../components/layout'
 import { PersonAvatar } from '../../components/PersonAvatar'
 import { countdownLabel, formatShortDate } from '../../domain/dates'
 import type { Nudge } from '../../domain/manager'
@@ -37,11 +38,11 @@ export function ManagerHomePage() {
           <Typography variant="overline" color="text.secondary">
             For you today
           </Typography>
-          <Stack spacing={1.25}>
+          <Box sx={cardGridSx}>
             {nudges.slice(0, 4).map((n, i) => (
               <NudgeCard key={i} nudge={n} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
             ))}
-          </Stack>
+          </Box>
         </Box>
       )}
 
@@ -49,7 +50,7 @@ export function ManagerHomePage() {
         <Typography variant="overline" color="text.secondary">
           Your joiners
         </Typography>
-        <Stack spacing={1.25} role="list" aria-label="Your joiners">
+        <Box sx={cardGridSx} role="list" aria-label="Your joiners">
           {views.map((v) => {
             const p = v.journey.persona
             return (
@@ -88,7 +89,7 @@ export function ManagerHomePage() {
               </Card>
             )
           })}
-        </Stack>
+        </Box>
       </Box>
     </Stack>
   )

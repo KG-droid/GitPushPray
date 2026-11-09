@@ -26,6 +26,7 @@ import SupportAgentRounded from '@mui/icons-material/SupportAgentRounded'
 import type { HandoverRoute, JoinerContext } from '../../assistant/protocol'
 import { useAssistant, type ChatMessage } from '../../assistant/useAssistant'
 import { useDemo } from '../../demo/useDemo'
+import { pinnedComposerSx } from '../../components/layout'
 
 const blink = keyframes`50% { opacity: 0; }`
 
@@ -128,12 +129,7 @@ export function AskPage() {
         onSubmit={submit}
         elevation={0}
         sx={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          mx: 'auto',
-          maxWidth: 440,
-          bottom: 'calc(56px + env(safe-area-inset-bottom))',
+          ...pinnedComposerSx,
           px: 1.5,
           py: 1,
           bgcolor: 'background.default',

@@ -8,6 +8,7 @@ import { PersonAvatar } from '../../components/PersonAvatar'
 import { icebreakers, introMessage, managerIntro } from '../../data/people'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
+import { pinnedComposerSx } from '../../components/layout'
 
 const bounce = keyframes`0%, 80%, 100% { transform: translateY(0); opacity: .4 } 40% { transform: translateY(-4px); opacity: 1 }`
 
@@ -116,12 +117,7 @@ export function ChatPage() {
       onSubmit={submit}
       elevation={0}
       sx={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        mx: 'auto',
-        maxWidth: 440,
-        bottom: 'calc(56px + env(safe-area-inset-bottom))',
+        ...pinnedComposerSx,
         px: 1.5,
         py: 1,
         bgcolor: 'background.default',

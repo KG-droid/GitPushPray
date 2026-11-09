@@ -10,6 +10,7 @@ import StarsRounded from '@mui/icons-material/StarsRounded'
 import { useNavigate } from 'react-router-dom'
 import { IconTile } from '../../components/IconTile'
 import { repository } from '../../data/repository'
+import { cardGridSx } from '../../components/layout'
 import { useDemo } from '../../demo/useDemo'
 import { goalCascade } from '../../domain/explore'
 import { dueCheckIns } from '../../domain/feedback'
@@ -96,7 +97,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
       <Typography variant="overline" color="text.secondary">
         {title}
       </Typography>
-      <Stack spacing={1.25}>{children}</Stack>
+      <Box sx={cardGridSx}>{children}</Box>
     </Box>
   )
 }
