@@ -5,6 +5,7 @@ import BadgeRounded from '@mui/icons-material/BadgeRounded'
 import { repository } from '../data/repository'
 import WbSunnyRounded from '@mui/icons-material/WbSunnyRounded'
 import RouteRounded from '@mui/icons-material/RouteRounded'
+import ExploreRounded from '@mui/icons-material/ExploreRounded'
 import PeopleAltRounded from '@mui/icons-material/PeopleAltRounded'
 import AutoAwesomeRounded from '@mui/icons-material/AutoAwesomeRounded'
 import { BrandMark } from './BrandMark'
@@ -16,6 +17,7 @@ import { useLongPress } from './useLongPress'
 const joinerTabs = [
   { path: '/today', label: 'Today', icon: <WbSunnyRounded /> },
   { path: '/journey', label: 'Journey', icon: <RouteRounded /> },
+  { path: '/explore', label: 'Explore', icon: <ExploreRounded /> },
   { path: '/people', label: 'People', icon: <PeopleAltRounded /> },
   { path: '/ask', label: 'Ask', icon: <AutoAwesomeRounded /> },
 ] as const
