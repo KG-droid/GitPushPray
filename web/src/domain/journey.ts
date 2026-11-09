@@ -164,6 +164,7 @@ export function matchesAudience(persona: Persona, audience?: Audience): boolean 
   if (audience.workPatterns && !audience.workPatterns.includes(persona.workPattern)) return false
   if (audience.software && !audience.software.some((s) => persona.software.includes(s))) return false
   if (audience.smcr !== undefined && audience.smcr !== persona.isSmcr) return false
+  if (audience.peopleManager !== undefined && audience.peopleManager !== !!persona.isPeopleManager) return false
   return true
 }
 

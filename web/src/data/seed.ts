@@ -55,7 +55,22 @@ export const seedPeople: Person[] = [
     askMeAbout: ['Python', 'Making remote work social'],
   },
 
+  {
+    id: 'mgr-ruth',
+    name: 'Ruth Calloway',
+    role: 'Head of Customer Insight',
+    bio: 'Leads three analytics teams and hired Nia to bring a fresh pair of eyes to the fraud team.',
+    askMeAbout: ['Growing first-time managers', 'Allotments'],
+  },
+
   // Buddies
+  {
+    id: 'buddy-callum',
+    name: 'Callum Brooks',
+    role: 'Team Leader, Fraud Analytics',
+    bio: 'Became a team leader two years ago and remembers the first month well.',
+    askMeAbout: ['Running a good team meeting', 'Leeds cycle routes'],
+  },
   {
     id: 'buddy-chloe',
     name: 'Chloe Whitfield',
@@ -243,6 +258,27 @@ export const seedPersonas: Persona[] = [
       references: { startDay: 2, days: 20 },
     },
     tagline: 'Remote analyst, kit delivered to home',
+  },
+  {
+    id: 'nia',
+    firstName: 'Nia',
+    lastName: 'Bennett',
+    role: 'Team Leader, Fraud Analytics',
+    team: 'Customer Insight',
+    jobFamily: 'data',
+    site: 'leeds',
+    location: 'Leeds, Wellington Place',
+    workPattern: 'hybrid',
+    offerAcceptedOn: '2026-10-21',
+    startDate: '2026-12-14',
+    software: ['Power BI'],
+    isSmcr: false,
+    isPeopleManager: true,
+    managerId: 'mgr-ruth',
+    buddyId: 'buddy-callum',
+    recruiterId: 'rec-owen',
+    checkPlan: standardChecks(22),
+    tagline: 'First-time team leader in Leeds',
   },
   // Daniel's other joiners, so his list isn't a single row. Not in the demo switcher.
   {

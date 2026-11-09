@@ -146,3 +146,28 @@ describe('next action and stages', () => {
     expect(aisha.nextAction?.id).toBe('day-30-checkin')
   })
 })
+
+describe('new line manager journey', () => {
+  it('only a new line manager gets the people-manager steps', () => {
+    const pmSteps = stepCatalogue.filter((s) => s.audience?.peopleManager).map((s) => s.id)
+    expect(pmSteps.length).toBeGreaterThan(0)
+    const nia = journey('nia', '2026-11-09').steps.map((s) => s.id)
+    const priya = journey('priya', '2026-11-09').steps.map((s) => s.id)
+    for (const id of pmSteps) {
+      expect(nia).toContain(id)
+      expect(priya).not.toContain(id)
+    }
+  })
+
+  it('unlocks team-facing steps as Day 1 approaches and approver access once vetted', () => {
+    const early = journey('nia', '2026-11-09')
+    expect(step(early, 'pm-intro-team')?.state).toBe('locked')
+    expect(step(early, 'pm-approver-access')?.state).toBe('locked')
+
+    const late = journey('nia', '2026-12-05')
+    expect(step(late, 'pm-intro-team')?.state).toBe('available')
+    expect(step(late, 'pm-approver-access')).toMatchObject({ state: 'available', owner: 'manager' })
+    expect(step(late, 'pm-first-one-to-ones')?.state).toBe('locked')
+    expect(step(journey('nia', '2026-12-14'), 'pm-first-one-to-ones')?.state).toBe('available')
+  })
+})
