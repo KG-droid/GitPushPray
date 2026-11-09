@@ -1,4 +1,5 @@
 import { daysUntil } from './dates'
+import { handoversTo, type HandoverItem } from './handover'
 import { managerEquipmentSummary, pickedOptions, NO_EQUIPMENT } from './equipment'
 import type { JourneyView, StepView } from './journey'
 import { laptopLabel, laptopOrder } from './laptop'
@@ -27,6 +28,8 @@ export interface ManagerJoinerView {
   /** Only the choices a manager needs to act on (e.g. kit to approve). Benefits stay private. */
   sharedChoices: { label: string; value: string }[]
   startDateMoved?: { from: string; to: string }
+  /** Questions the joiner chose to send to their manager from the assistant, newest first */
+  askedForYou: HandoverItem[]
   /** Average of the Day-30 pulse, trend only (at least two responses so nobody's single answer is exposed) */
   pulse?: { responses: number; knowWhoToAsk: number; confident: number; trend: 'up' | 'flat' | 'down' }
 }
@@ -76,6 +79,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     ],
     startDateMoved: moved && moved.kind === 'start-date-moved' ? { from: moved.from, to: moved.to } : undefined,
     pulse: pulseTrend(events, journey),
+    askedForYou: handoversTo(events, ['manager'], journey.today, journey.persona.id),
   }
 }
 
@@ -110,6 +114,7 @@ export function pulseTrend(events: JourneyEvent[], journey: JourneyView): Manage
 }
 
 export type Nudge =
+  | { kind: 'asked-for-you'; personaId: string; name: string; summary: string }
   | { kind: 'first-week'; personaId: string; name: string; startDate: string; daysToStart: number }
   | { kind: 'task-due'; personaId: string; name: string; task: StepView; overdue: boolean }
   | { kind: 'date-moved'; personaId: string; name: string; to: string }
@@ -120,6 +125,8 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
   for (const v of views) {
     const { persona, daysToStart, startDate, today } = v.journey
     const name = persona.firstName
+    // The joiner asked for their manager by name: always the first thing they see.
+    if (v.askedForYou[0]) nudges.push({ kind: 'asked-for-you', personaId: persona.id, name, summary: v.askedForYou[0].summary })
     if (v.startDateMoved) nudges.push({ kind: 'date-moved', personaId: persona.id, name, to: v.startDateMoved.to })
     // Google's research: a just-in-time nudge in the days before Day 1 makes the biggest difference.
     if (daysToStart > 0 && daysToStart <= 7) nudges.push({ kind: 'first-week', personaId: persona.id, name, startDate, daysToStart })
@@ -127,7 +134,7 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
       nudges.push({ kind: 'task-due', personaId: persona.id, name, task, overdue: !!task.dueDate && task.dueDate < today })
     }
   }
-  const rank = { 'date-moved': 0, 'first-week': 1, 'task-due': 2 }
+  const rank = { 'asked-for-you': 0, 'date-moved': 1, 'first-week': 2, 'task-due': 3 }
   return nudges.sort((a, b) => rank[a.kind] - rank[b.kind])
 }
 

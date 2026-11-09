@@ -42,6 +42,8 @@ export interface DemoContextValue extends DemoState {
   logMeetup(kind: MeetupKind): void
   /** Record that the joiner's question was handed to a person (so their buddy or manager can see it) */
   recordHandover(route: HandoverSentPayload['route'], summary: string): void
+  /** Answer the two-question pulse that belongs to a step, which also completes that step */
+  submitPulse(stepId: string, answers: { knowWhoToAsk: number; confident: number }): void
   /** Check-ins the selected joiner has already answered */
   answeredCheckIns: CheckInMilestone[]
   /** Submit a check-in. Stored anonymously; only the fact that it was done is tied to the joiner. */

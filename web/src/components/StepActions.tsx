@@ -8,6 +8,9 @@ import { formatShortDate } from '../domain/dates'
 import type { StepView } from '../domain/journey'
 import { joinPicks, parsePicks, pickedLabels, togglePick } from '../domain/equipment'
 import { laptopOrder } from '../domain/laptop'
+import { PULSE_STEP_IDS } from '../domain/pulse'
+import { Day30Celebration } from './Day30Celebration'
+import { PulseForm } from './PulseForm'
 
 /**
  * The interactive part of a step: choice options and a done button when available,
@@ -43,6 +46,7 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
             {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
           </Typography>
         </Stack>
+        {step.id === 'day-30-checkin' && <Day30Celebration />}
         {step.id === 'accessibility-needs' && step.value === 'yes' && (
           <Typography variant="body2" color="text.secondary">
             Your manager will get in contact with you as soon as they are able, to talk it through.
@@ -94,6 +98,8 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
       </Stack>
     )
   }
+
+  if (PULSE_STEP_IDS.includes(step.id)) return <PulseForm stepId={step.id} />
 
   const finish = () => {
     completeStep(step.id, { value: choice })

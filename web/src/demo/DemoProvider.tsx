@@ -12,6 +12,7 @@ import type {
   CheckId,
   CheckUpdatedPayload,
   FeedbackSubmittedPayload,
+  PulsePayload,
   Owner,
   StartDateChangedPayload,
   StepCompletedPayload,
@@ -209,6 +210,15 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [persona.id, stamp],
   )
 
+  const submitPulse = useCallback(
+    (stepId: string, answers: PulsePayload) => {
+      repository.addEvent({ personaId: persona.id, type: 'pulse_submitted', at: stamp(), payload: { ...answers } })
+      completeStep(stepId)
+      if (stepId === 'day-30-checkin') setToast('One month in. Thank you for telling us how it’s really going.')
+    },
+    [completeStep, persona.id, stamp],
+  )
+
   const answeredCheckIns = useMemo(
     () =>
       repository
@@ -275,6 +285,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     typingId,
     logMeetup,
     recordHandover,
+    submitPulse,
     answeredCheckIns,
     submitCheckIn,
     logQuestion,

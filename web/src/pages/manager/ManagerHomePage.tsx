@@ -1,5 +1,6 @@
 import { Box, Card, CardActionArea, CardContent, LinearProgress, Stack, Typography } from '@mui/material'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
+import ForumRounded from '@mui/icons-material/ForumRounded'
 import EventRepeatRounded from '@mui/icons-material/EventRepeatRounded'
 import RocketLaunchRounded from '@mui/icons-material/RocketLaunchRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
@@ -97,7 +98,9 @@ export function ManagerHomePage() {
 
 function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
   const content =
-    nudge.kind === 'first-week'
+    nudge.kind === 'asked-for-you'
+      ? { icon: <ForumRounded color="secondary" />, title: `${nudge.name} asked for you`, body: nudge.summary }
+      : nudge.kind === 'first-week'
       ? {
           icon: <RocketLaunchRounded color="secondary" />,
           title: `${nudge.name} starts ${nudge.daysToStart === 1 ? 'tomorrow' : `in ${nudge.daysToStart} days`}`,
@@ -116,7 +119,7 @@ function NudgeCard({ nudge, onOpen }: { nudge: Nudge; onOpen: () => void }) {
           }
 
   return (
-    <Card sx={nudge.kind === 'first-week' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
+    <Card sx={nudge.kind === 'first-week' || nudge.kind === 'asked-for-you' ? { borderColor: 'secondary.main', borderWidth: 2 } : undefined}>
       <CardActionArea onClick={onOpen}>
         <CardContent sx={{ display: 'flex', gap: 1.75, alignItems: 'center', py: 1.75 }}>
           <IconTile icon={content.icon} />

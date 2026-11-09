@@ -20,6 +20,7 @@ import { useDemo } from '../../demo/useDemo'
 import { countdownLabel, daysUntil, formatShortDate } from '../../domain/dates'
 import { NoticeCard } from '../../components/NoticeCard'
 import { FeedbackPrompt } from '../../components/FeedbackPrompt'
+import { Day30Celebration } from '../../components/Day30Celebration'
 
 function greeting() {
   const h = new Date().getHours()
@@ -54,6 +55,8 @@ export function TodayPage() {
       ))}
 
       <CountdownCard />
+
+      {journey.steps.find((s) => s.id === 'day-30-checkin')?.state === 'done' && <Day30Celebration />}
 
       <FeedbackPrompt />
 

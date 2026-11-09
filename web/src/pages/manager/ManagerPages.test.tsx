@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test/renderApp'
+import { repository } from '../../data/repository'
 
 describe('Manager view', () => {
   it('lists the manager’s joiners with their status and today’s nudges', () => {
@@ -91,5 +92,23 @@ describe('Manager access request', () => {
 
     await user.click(screen.getByText('Request system access'))
     expect(await screen.findByText('6 access items requested')).toBeInTheDocument()
+  })
+})
+
+describe('Manager view: questions sent to the manager', () => {
+  it('shows a joiner’s handover from the assistant at the top of the manager’s day', async () => {
+    renderApp('/manager', { role: 'manager' })
+    expect(screen.queryByText('Priya asked for you')).toBeNull()
+
+    act(() => {
+      repository.addEvent({
+        personaId: 'priya',
+        type: 'handover_sent',
+        at: '2026-11-09T10:00:00Z',
+        payload: { route: 'manager', summary: 'Priya would like to know what week one looks like.' },
+      })
+    })
+    expect(await screen.findByText('Priya asked for you')).toBeInTheDocument()
+    expect(screen.getByText(/what week one looks like/)).toBeInTheDocument()
   })
 })

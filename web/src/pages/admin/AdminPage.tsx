@@ -9,6 +9,7 @@ import type { Recommendation } from '../../assistant/protocol'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
+import { handoversTo } from '../../domain/handover'
 import { JOB_FAMILY_LABELS } from '../../domain/feedback'
 import {
   MIN_COHORT,
@@ -26,7 +27,7 @@ import {
 
 /** Admin-only trends from joiner feedback and the assistant. Anonymous: themes and counts, never people or questions. */
 export function AdminPage() {
-  const { role } = useDemo()
+  const { role, today } = useDemo()
   const [family, setFamily] = useState<FamilyFilter>('all')
 
   const feedback = repository.listFeedback()
@@ -56,6 +57,14 @@ export function AdminPage() {
   // Only the admin role sees this; everyone else goes back to their own view.
   if (role !== 'admin') return <Navigate to="/today" replace />
 
+  // Questions joiners chose to send to HR Direct or the screening team. Each one names the joiner, because they asked for a reply.
+  const personas = repository.listPersonas()
+  const requests = handoversTo(
+    personas.flatMap((p) => repository.listEvents(p.id)),
+    ['hr', 'screening'],
+    today,
+  )
+
   return (
     <Stack spacing={2.5} sx={{ pt: 1 }}>
       <Box>
@@ -66,6 +75,34 @@ export function AdminPage() {
           What new joiners tell us and ask us, so we can fix the process for the next one.
         </Typography>
       </Box>
+
+      <Section title="Waiting for a reply" subtitle="Questions joiners chose to send to HR Direct or the screening team, with the summary they approved.">
+        {requests.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            Nothing waiting. When a joiner asks the assistant for a person, it lands here.
+          </Typography>
+        ) : (
+          <Stack spacing={1.5} component="ul" aria-label="Requests for HR Direct and screening" sx={{ listStyle: 'none', m: 0, p: 0 }}>
+            {requests.map((r) => {
+              const p = personas.find((x) => x.id === r.personaId)
+              return (
+                <Box component="li" key={r.personaId + r.at}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.25, flexWrap: 'wrap', rowGap: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {p?.firstName} {p?.lastName}
+                    </Typography>
+                    <Chip size="small" label={r.route === 'hr' ? 'HR Direct' : 'Screening team'} />
+                    <Typography variant="caption" color="text.secondary">
+                      {p?.role} · {formatShortDate(r.at.slice(0, 10))}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2">{r.summary}</Typography>
+                </Box>
+              )
+            })}
+          </Stack>
+        )}
+      </Section>
 
       <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }} role="group" aria-label="Filter by role">
         {(['all', ...Object.keys(JOB_FAMILY_LABELS)] as FamilyFilter[]).map((f) => (

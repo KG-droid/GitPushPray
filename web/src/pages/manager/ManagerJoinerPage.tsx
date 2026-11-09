@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Alert, Box, Card, CardContent, Checkbox, FormControlLabel, IconButton, LinearProgress, Stack, Typography } from '@mui/material'
 import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded'
+import ForumRounded from '@mui/icons-material/ForumRounded'
 import ShieldRounded from '@mui/icons-material/ShieldRounded'
 import VisibilityOffRounded from '@mui/icons-material/VisibilityOffRounded'
 import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded'
@@ -49,6 +50,29 @@ export function ManagerJoinerPage() {
           </Box>
         </Box>
       </Stack>
+
+      {view.askedForYou.length > 0 && (
+        <Card sx={{ borderColor: 'secondary.main', borderWidth: 2 }}>
+          <CardContent>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <IconTile icon={<ForumRounded color="secondary" />} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {p.firstName} asked for you
+                </Typography>
+                {view.askedForYou.map((h) => (
+                  <Typography key={h.at} variant="body2" sx={{ mt: 0.5 }}>
+                    {h.summary}
+                  </Typography>
+                ))}
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  They chose to send you this from the assistant. A quick reply, or a catch-up, is the best answer.
+                </Typography>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {view.startDateMoved && (
         <Alert severity="info" variant="outlined" sx={{ borderRadius: '20px', bgcolor: 'background.paper' }}>
@@ -128,7 +152,7 @@ export function ManagerJoinerPage() {
             <Stack direction="row" spacing={1} sx={{ mt: 1.5, color: 'text.secondary', alignItems: 'flex-start' }}>
               <VisibilityOffRounded sx={{ fontSize: 16, mt: 0.25 }} />
               <Typography variant="caption">
-                Private to {p.firstName}: check results, benefit choices, chats with their buddy and questions to the assistant.
+                Private to {p.firstName}: check results, benefit choices, chats with their buddy and questions to the assistant, unless they choose to send you one.
               </Typography>
             </Stack>
           </CardContent>
