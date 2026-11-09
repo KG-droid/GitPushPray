@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Button, Drawer, IconButton, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, Drawer, IconButton, Radio, Stack, TextField, Typography } from '@mui/material'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
@@ -10,6 +10,7 @@ import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
 import type { JourneyView } from '../../domain/journey'
+import { laptopLabel, laptopOrder, suggestedLaptopSpec } from '../../domain/laptop'
 
 /** Bottom sheet for one of the manager's tasks. Setting goals and assigning a buddy get their own forms. */
 export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: JourneyView; stepId: string | null; onClose: () => void }) {
@@ -53,13 +54,16 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
             <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
               <CheckCircleRounded fontSize="small" />
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Done{step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
+                {step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
+                {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
               </Typography>
             </Stack>
           ) : step.id === 'mgr-set-goals' ? (
             <GoalsForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-assign-buddy' ? (
             <BuddyForm journey={journey} onDone={onClose} />
+          ) : step.id === 'mgr-set-device-spec' ? (
+            <LaptopSpecForm journey={journey} onDone={onClose} />
           ) : (
             <SimpleAction journey={journey} stepId={step.id} label={step.id === 'mgr-request-device' ? 'Approve order' : 'Submit request'} onDone={onClose} />
           )}
@@ -139,10 +143,62 @@ function BuddyForm({ journey, onDone }: { journey: JourneyView; onDone: () => vo
   )
 }
 
+function LaptopSpecForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+  const { completeStep } = useDemo()
+  const step = journey.steps.find((s) => s.id === 'mgr-set-device-spec')
+  const suggested = suggestedLaptopSpec(journey.persona.jobFamily)
+  const [spec, setSpec] = useState<string>(suggested)
+  const name = journey.persona.firstName
+
+  return (
+    <Stack spacing={1.5}>
+      <Stack spacing={1} role="radiogroup" aria-label="Laptop spec">
+        {step?.options?.map((o) => {
+          const selected = spec === o.value
+          return (
+            <Card key={o.value} variant="outlined" sx={{ borderColor: selected ? 'primary.main' : undefined, borderWidth: selected ? 2 : 1 }}>
+              <CardActionArea onClick={() => setSpec(o.value)} role="radio" aria-checked={selected}>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.25 }}>
+                  <Radio checked={selected} size="small" tabIndex={-1} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {o.label}
+                      {o.value === suggested && (
+                        <Typography component="span" variant="caption" color="text.secondary">
+                          {' '}
+                          · suggested for a {journey.persona.role.toLowerCase()}
+                        </Typography>
+                      )}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {o.detail}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </CardActionArea>
+            </Card>
+          )
+        })}
+      </Stack>
+      <Typography variant="caption" color="text.secondary">
+        {name} will then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in this spec.
+      </Typography>
+      <Button
+        variant="contained"
+        onClick={() => {
+          completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value: spec })
+          onDone()
+        }}
+      >
+        Confirm spec
+      </Button>
+    </Stack>
+  )
+}
+
 function SimpleAction({ journey, stepId, label, onDone }: { journey: JourneyView; stepId: string; label: string; onDone: () => void }) {
   const { completeStep } = useDemo()
-  const kit = journey.steps.find((s) => s.id === 'choose-kit')
-  const kitLabel = kit?.options?.find((o) => o.value === kit.value)?.label
+  const kitLabel = laptopLabel(laptopOrder(journey))
 
   return (
     <Stack spacing={1.5}>

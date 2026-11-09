@@ -1,5 +1,6 @@
 import { daysUntil } from './dates'
 import type { JourneyView, StepView } from './journey'
+import { laptopLabel, laptopOrder } from './laptop'
 import type { JourneyEvent, PulsePayload } from './types'
 
 /**
@@ -35,8 +36,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     .sort((a, b) => order(a) - order(b) || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'))
   const urgent = tasks.filter((t) => t.state === 'available' && t.dueDate && daysUntil(t.dueDate, journey.today) <= 7)
   const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content')
-  const kit = journey.steps.find((s) => s.id === 'choose-kit' && s.state === 'done')
-  const kitLabel = kit?.options?.find((o) => o.value === kit.value)?.label
+  const kitLabel = laptopLabel(laptopOrder(journey))
   const moved = journey.notices.find((n) => n.kind === 'start-date-moved')
 
   const status: JoinerStatus =

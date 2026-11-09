@@ -15,6 +15,19 @@ describe('Manager view', () => {
     expect(screen.getByText('Tom starts in 7 days')).toBeInTheDocument()
   })
 
+  it('lets the manager set the laptop spec, suggesting developer for an engineer', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/amara', { role: 'manager' })
+
+    await user.click(screen.getByText('Set their laptop spec'))
+    const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })
+    expect(within(sheet).getByRole('radio', { name: /Developer/ })).toHaveAttribute('aria-checked', 'true')
+    await user.click(within(sheet).getByRole('radio', { name: /Standard/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Confirm spec' }))
+
+    expect(await screen.findByText('Standard')).toBeInTheDocument()
+  })
+
   it('setting goals sends the joiner their welcome pack, with the goals in it', async () => {
     const user = userEvent.setup()
     renderApp('/manager/joiner/priya', { role: 'manager' })

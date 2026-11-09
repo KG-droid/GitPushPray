@@ -35,7 +35,7 @@ describe('managerView', () => {
 
   it('shares the laptop choice but keeps benefits private', () => {
     const v = view('margaret', '2026-11-09')
-    expect(v.sharedChoices).toEqual([{ label: 'Laptop', value: 'Surface Laptop 7' }])
+    expect(v.sharedChoices).toEqual([{ label: 'Laptop', value: 'Surface Laptop, Standard spec' }])
     expect(JSON.stringify(v.sharedChoices)).not.toMatch(/medical/i)
   })
 

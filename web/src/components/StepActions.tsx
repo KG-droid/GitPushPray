@@ -5,14 +5,16 @@ import LockRounded from '@mui/icons-material/LockRounded'
 import { useDemo } from '../demo/useDemo'
 import { formatShortDate } from '../domain/dates'
 import type { StepView } from '../domain/journey'
+import { laptopOrder } from '../domain/laptop'
 
 /**
  * The interactive part of a step: choice options and a done button when available,
  * the outcome when done, and the unlock reason when locked.
  */
 export function StepActions({ step, onDone }: { step: StepView; onDone?: () => void }) {
-  const { completeStep } = useDemo()
+  const { completeStep, journey } = useDemo()
   const [choice, setChoice] = useState<string | undefined>()
+  const laptopSpec = step.id === 'choose-kit' ? laptopOrder(journey).spec : undefined
 
   if (step.state === 'locked') {
     return (
@@ -43,6 +45,16 @@ export function StepActions({ step, onDone }: { step: StepView; onDone?: () => v
 
   return (
     <Box>
+      {laptopSpec && (
+        <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 1.5, mb: 1.5 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            Your manager has set you up with the {laptopSpec.label} spec
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {laptopSpec.detail} Every model below comes in this spec.
+          </Typography>
+        </Box>
+      )}
       {step.kind === 'choice' && step.options && (
         <Stack spacing={1} sx={{ mb: 2 }} role="radiogroup" aria-label={step.title}>
           {step.options.map((o) => {

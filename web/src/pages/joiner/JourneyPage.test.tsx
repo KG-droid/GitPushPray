@@ -20,11 +20,11 @@ describe('Journey tab', () => {
 
     await user.click(screen.getByText('Choose your laptop'))
     const sheet = await screen.findByRole('dialog', { name: 'Choose your laptop' })
-    await user.click(within(sheet).getByRole('radio', { name: /Surface Laptop 7/ }))
+    await user.click(within(sheet).getByRole('radio', { name: /Surface Laptop/ }))
     await user.click(within(sheet).getByRole('button', { name: 'Confirm choice' }))
 
     expect(await screen.findByText(/set off 1 more thing for your team/)).toBeInTheDocument()
-    expect(screen.getByText('Surface Laptop 7')).toBeInTheDocument()
+    expect(screen.getByText('Surface Laptop')).toBeInTheDocument()
   })
 
   it('shows the manager’s progress alongside the joiner’s', async () => {
