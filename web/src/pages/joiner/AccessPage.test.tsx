@@ -7,16 +7,16 @@ describe('Your system access', () => {
     renderApp('/journey/access')
     expect(screen.getByRole('heading', { name: 'Your system access' })).toBeInTheDocument()
     expect(screen.getByText(/once your checks have cleared/)).toBeInTheDocument()
-    expect(screen.queryByRole('list', { name: 'Access by system' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Access progress' })).not.toBeInTheDocument()
   })
 
-  it('tracks each system with its own owner once the manager has asked', () => {
+  it('shows progress without naming the systems once the manager has asked', () => {
     renderApp('/journey/access', { personaId: 'jordan' })
     expect(screen.getByText('2 of 6 ready for Day 1')).toBeInTheDocument()
-    const list = screen.getByRole('list', { name: 'Access by system' })
-    expect(within(list).getByText(/Automatic · Identity team/)).toBeInTheDocument()
-    expect(within(list).getByText(/Approved by · Application owner/)).toBeInTheDocument()
-    expect(within(list).getAllByText('Being set up')).toHaveLength(4)
-    expect(within(list).getByText(/Expected .*, after cash-handling training/)).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Access ready' })).toBeInTheDocument()
+    const list = screen.getByRole('list', { name: 'Access progress' })
+    expect(within(list).getByText('Being approved or set up')).toBeInTheDocument()
+    expect(within(list).getByText('Expected by Wed 11 Nov.')).toBeInTheDocument()
+    expect(screen.queryByText(/sg-branch-colleagues|Entra/)).not.toBeInTheDocument()
   })
 })

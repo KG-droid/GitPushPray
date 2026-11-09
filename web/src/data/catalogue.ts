@@ -553,7 +553,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'content',
     icon: 'key',
     title: 'Your system access',
-    body: 'Your manager asked once. See which systems are ready for Day 1, who is approving the rest, and what switches on after training.',
+    body: 'Your manager asked once. See how much is ready for Day 1 and what switches on after training. There’s nothing for you to chase.',
     unlock: { type: 'stepDone', stepId: 'mgr-request-access' },
     lockedHint: 'Appears when your manager has requested your access.',
     href: '/journey/access',
