@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Box, Card, CardActionArea, CardContent, Stack, Typography } from '@mui/material'
+import MenuBookRounded from '@mui/icons-material/MenuBookRounded'
 import AccountTreeRounded from '@mui/icons-material/AccountTreeRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import FlagRounded from '@mui/icons-material/FlagRounded'
@@ -52,6 +53,12 @@ export function ExplorePage() {
           title="My organisation"
           body={`Where you sit in ${persona.team}, from your team up to the Group Chief Executive`}
           onClick={() => navigate('/explore/organisation')}
+        />
+        <HubCard
+          icon={<MenuBookRounded color="primary" />}
+          title="Jargon buster"
+          body="SM&CR, DBS, HR Direct and the rest: what the acronyms mean in plain English"
+          onClick={() => navigate('/explore/glossary')}
         />
       </Group>
 

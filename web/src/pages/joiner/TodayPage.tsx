@@ -20,6 +20,7 @@ import { useDemo } from '../../demo/useDemo'
 import { countdownLabel, daysUntil, formatShortDate } from '../../domain/dates'
 import { NoticeCard } from '../../components/NoticeCard'
 import { FeedbackPrompt } from '../../components/FeedbackPrompt'
+import { GlossaryText } from '../../components/GlossaryText'
 import { Day30Celebration } from '../../components/Day30Celebration'
 
 function greeting() {
@@ -74,7 +75,7 @@ export function TodayPage() {
                     {nextAction.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-                    {nextAction.body}
+                    <GlossaryText text={nextAction.body} />
                   </Typography>
                   {/* key resets any half-made choice when the next action changes */}
                   <StepActions key={nextAction.id} step={nextAction} />

@@ -5,6 +5,7 @@ import { STAGES } from '../domain/journey'
 import { GOAL_SEPARATOR } from '../data/goals'
 import { repository } from '../data/repository'
 import { IconTile } from './IconTile'
+import { GlossaryText } from './GlossaryText'
 import { StepActions } from './StepActions'
 
 /**
@@ -45,7 +46,7 @@ export function StepSheet({ stepId, onClose }: { stepId: string | null; onClose:
             </IconButton>
           </Stack>
           <Typography color="text.secondary" sx={{ mb: 3 }}>
-            {step.body}
+            <GlossaryText text={step.body} />
           </Typography>
           {step.id === 'welcome-pack' && goals.length > 0 && step.state !== 'locked' && (
             <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 2, mb: 3 }}>
