@@ -86,3 +86,22 @@ describe('Explore tab', () => {
     expect(within(priorities).getByText('Ship your first change to production by the end of week 2')).toBeInTheDocument()
   })
 })
+
+describe('Accessibility and inclusion', () => {
+  it('asks the adjustments question and opens the equipment step on Yes', async () => {
+    const user = userEvent.setup()
+    renderApp('/explore')
+    await user.click(screen.getByText('Accessibility and inclusion'))
+    expect(await screen.findByText(/Do you need any adjustments or additional support to help you be at your best when you start\?/)).toBeInTheDocument()
+    expect(screen.getByText('Screen reader (JAWS or NVDA)')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Yes, I’d like to ask for support' }))
+    expect(await screen.findByRole('dialog', { name: 'Choose your equipment and assistive technology' })).toBeInTheDocument()
+  })
+
+  it('is gentle when someone is not ready', async () => {
+    const user = userEvent.setup()
+    renderApp('/explore/accessibility')
+    await user.click(screen.getByRole('button', { name: 'Not right now' }))
+    expect(screen.getByText(/ask at any time/)).toBeInTheDocument()
+  })
+})

@@ -6,6 +6,7 @@ import { ExplorePage } from './pages/explore/ExplorePage'
 import { GoalsPage } from './pages/explore/GoalsPage'
 import { OrganisationPage } from './pages/explore/OrganisationPage'
 import { BenefitsPage } from './pages/explore/BenefitsPage'
+import { AccessibilityPage } from './pages/explore/AccessibilityPage'
 import { PurposePage } from './pages/explore/PurposePage'
 import { ValueDetailPage, ValuesPage } from './pages/explore/ValuesPage'
 import { ChatPage } from './pages/joiner/ChatPage'
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/explore/purpose" element={<PurposePage />} />
         <Route path="/explore/values" element={<ValuesPage />} />
         <Route path="/explore/values/:valueId" element={<ValueDetailPage />} />
+        <Route path="/explore/accessibility" element={<AccessibilityPage />} />
         <Route path="/explore/feedback" element={<FeedbackPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/people/chat/:personId" element={<ChatPage />} />
