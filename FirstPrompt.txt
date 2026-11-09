@@ -1,0 +1,13 @@
+First I want to set the scene and create some memories/rules for what we are working on creating. 
+
+First and foremost the this is for a hackathon at work, we are creating a mock system to present our based idea of how the Lloyds Banking Group onboarding process works. A key part of this is that the system should be tech first, and feel very modern and inuitive.
+
+Through the entire process, please can you set a memory that we will always want you to ask questions and suggest solutions when we ask for things. We prefer to get things right the first time and you can ask as many questions are you need.
+
+This includes this start information gathering, please as, any questions you need and we can build up the scope, memorys and rules.
+
+The system should be react typescript based. I think its probably best to start with hock UIs with sample data, and move to a back end api with SQLite database maybe later on. 
+
+As we go please research the market as to what other leading companies do for this sort of onboarding process.
+
+Are you first able to study this website: LaunchPad '26 · Modern Workplaces Engineering Hackathon that has the details of the hack.
