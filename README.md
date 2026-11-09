@@ -74,6 +74,7 @@ Long-press the logo (or press **Shift+D**) to open the demo controls:
 
 - switch between joiner, manager, buddy and admin views, and between personas
 - time travel to Offer accepted, 2 weeks to go, Day 1, end of week 1 and Day 30
+- tap **Catch up to this date** after a time jump to mark everything due by then as done (the check-ins are left for you to do live)
 - slip the start date by two weeks, stall the slowest check, or reset a persona
 
 A good ten-minute path: Margaret's slow regulatory reference and the date slip, then Priya and Rhys getting different packs, then Daniel setting Priya's goals so her welcome pack appears, then the assistant declining a salary question and offering a person, then Aisha's Day 30 check-in and celebration, then the manager's confidence trend.

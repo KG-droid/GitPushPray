@@ -24,6 +24,8 @@ export interface DemoContextValue extends DemoState {
   setRole(role: DemoRole): void
   /** Complete a step. Defaults to the selected persona's journey, done by the joiner */
   completeStep(stepId: string, opts?: { value?: string; by?: Owner; personaId?: string }): void
+  /** Complete everything that should already be done by the demo date, with sensible defaults */
+  catchUp(): number
   slipStartDate(days: number): void
   delayCheck(checkId: CheckId, days: number): void
   resetPersona(): void

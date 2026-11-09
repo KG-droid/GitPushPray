@@ -145,20 +145,29 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     vettingExpectedClearOn: checkViews.reduce((max, c) => (c.expectedClearOn > max ? c.expectedClearOn : max), today),
     stages,
     currentStage,
-    nextAction: pickNextAction(journeySteps, 'joiner'),
+    nextAction: pickNextAction(journeySteps, 'joiner', daysToStart),
     steps: stepViews,
     notices: buildNotices(persona, past, checkViews),
   }
 }
 
-/** Highest-priority available step for an owner: earliest stage, then earliest due date, tasks before content. */
-export function pickNextAction(steps: StepView[], owner: Owner): StepView | undefined {
+/**
+ * Highest-priority available step for an owner: earliest stage, then earliest due date, tasks before content.
+ * Once the joiner has started, what belongs to their first weeks leads, and anything left over from before
+ * Day 1 waits its turn. On Day 1 itself the Day 1 plan comes first.
+ */
+export function pickNextAction(steps: StepView[], owner: Owner, daysToStart = Infinity): StepView | undefined {
   const stageOrder = STAGES.map((s) => s.id)
   const kindOrder = { task: 0, choice: 0, content: 1 }
+  const started = daysToStart <= 0
+  const leftover = (s: StepView) => Number(started && stageOrder.indexOf(s.stage) < stageOrder.indexOf('week-one'))
+  const dayOnePlan = (s: StepView) => Number(!(daysToStart === 0 && s.id === 'day-one-plan'))
   return steps
     .filter((s) => s.owner === owner && s.state === 'available')
     .sort(
       (a, b) =>
+        dayOnePlan(a) - dayOnePlan(b) ||
+        leftover(a) - leftover(b) ||
         kindOrder[a.kind] - kindOrder[b.kind] ||
         stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage) ||
         (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'),

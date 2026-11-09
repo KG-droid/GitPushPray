@@ -17,6 +17,7 @@ import type {
   StartDateChangedPayload,
   StepCompletedPayload,
 } from '../domain/types'
+import { planCatchUp } from './catchUp'
 import { DemoContext, type ChatEntry, type DemoContextValue, type DemoState } from './useDemo'
 
 const STATE_KEY = 'lbg-joiner:demo:v1'
@@ -131,6 +132,29 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     },
     [journeyFor, persona, stamp, today],
   )
+
+  const catchUp = useCallback(() => {
+    const plan = planCatchUp({
+      persona,
+      events: repository.listEvents(persona.id),
+      today,
+      steps: repository.listSteps(),
+      checks: repository.listChecks(),
+    })
+    // Real times, a millisecond apart, so the order of the plan is the order the journey sees.
+    const base = Date.now()
+    plan.forEach((s, i) => {
+      const payload: StepCompletedPayload = { stepId: s.stepId, by: s.by, value: s.value }
+      repository.addEvent({
+        personaId: persona.id,
+        type: 'step_completed',
+        at: `${today}T${new Date(base + i).toISOString().slice(11)}`,
+        payload: { ...payload },
+      })
+    })
+    setToast(plan.length ? `Caught up: ${plan.length} step${plan.length === 1 ? '' : 's'} marked done.` : 'Already up to date.')
+    return plan.length
+  }, [persona, today])
 
   const slipStartDate = useCallback(
     (days: number) => {
@@ -273,6 +297,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setRole: (role) => setState((s) => ({ ...s, role })),
     journeyFor,
     completeStep,
+    catchUp,
     slipStartDate,
     delayCheck,
     resetPersona: () => repository.reset(persona.id),
