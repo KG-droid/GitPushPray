@@ -30,6 +30,7 @@ import ShieldRounded from '@mui/icons-material/ShieldRounded'
 import StorefrontRounded from '@mui/icons-material/StorefrontRounded'
 import VerifiedRounded from '@mui/icons-material/VerifiedRounded'
 import WavingHandRounded from '@mui/icons-material/WavingHandRounded'
+import ForestRounded from '@mui/icons-material/ForestRounded'
 import type { ComponentType } from 'react'
 
 const icons: Record<string, ComponentType<SvgIconProps>> = {
@@ -64,6 +65,7 @@ const icons: Record<string, ComponentType<SvgIconProps>> = {
   storefront: StorefrontRounded,
   verified: VerifiedRounded,
   waving_hand: WavingHandRounded,
+  eco: ForestRounded,
 }
 
 /** Maps the icon names used in the step catalogue to MUI icons. */

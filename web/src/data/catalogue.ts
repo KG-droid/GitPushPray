@@ -156,6 +156,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Choose one to start with — you can change it during the yearly benefits window.',
     unlock: { type: 'checksCleared', checks: ['right-to-work'] },
     lockedHint: 'Unlocks once your right to work is confirmed.',
+    href: '/explore/benefits',
+    hrefLabel: 'Choose in Benefits',
     dueOffsetDays: -7,
     minutes: 3,
     options: [
@@ -175,6 +177,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Add your bank details and choose your pension contribution — we match up to 10%.',
     unlock: { type: 'checksCleared', checks: 'all' },
     lockedHint: 'Unlocks when all your checks are cleared — we only ask for bank details once we know you’re joining.',
+    href: '/explore/benefits',
+    hrefLabel: 'Set up in Benefits',
     dueOffsetDays: -5,
     minutes: 5,
   },

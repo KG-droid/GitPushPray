@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Button, Card, CardActionArea, Chip, Radio, Stack, Typography } from '@mui/material'
 import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
+import { useNavigate } from 'react-router-dom'
 import { useDemo } from '../demo/useDemo'
 import { formatShortDate } from '../domain/dates'
 import type { StepView } from '../domain/journey'
@@ -11,8 +12,10 @@ import { laptopOrder } from '../domain/laptop'
  * The interactive part of a step: choice options and a done button when available,
  * the outcome when done, and the unlock reason when locked.
  */
-export function StepActions({ step, onDone }: { step: StepView; onDone?: () => void }) {
+/** `inline` forces the form here even when the step has its own home screen (`href`). */
+export function StepActions({ step, onDone, inline = false }: { step: StepView; onDone?: () => void; inline?: boolean }) {
   const { completeStep, journey } = useDemo()
+  const navigate = useNavigate()
   const [choice, setChoice] = useState<string | undefined>()
   const [changing, setChanging] = useState(false)
   const laptopSpec = step.id === 'choose-kit' ? laptopOrder(journey).spec : undefined
@@ -64,6 +67,19 @@ export function StepActions({ step, onDone }: { step: StepView; onDone?: () => v
             </Stack>
           )
         )}
+      </Stack>
+    )
+  }
+
+  // Some steps live on their own screen (e.g. benefits): signpost there instead of duplicating the form.
+  if (step.href && !inline) {
+    return (
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+        <Button variant="contained" onClick={() => { onDone?.(); navigate(step.href!) }}>
+          {step.hrefLabel ?? 'Open'}
+        </Button>
+        {step.minutes && <Chip size="small" label={`${step.minutes} min`} />}
+        {step.dueDate && <Chip size="small" variant="outlined" label={`By ${formatShortDate(step.dueDate)}`} />}
       </Stack>
     )
   }

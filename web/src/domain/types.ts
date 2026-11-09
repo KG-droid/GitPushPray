@@ -165,6 +165,9 @@ export interface StepDefinition {
   lockedHint?: string
   /** Wording for the joiner when this is someone else's locked step */
   teamHint?: string
+  /** The step is done on its own screen; journey views link there instead of showing the form */
+  href?: string
+  hrefLabel?: string
   /** Due date relative to the (current) start date. -14 = two weeks before Day 1 */
   dueOffsetDays?: number
   minutes?: number

@@ -2,14 +2,17 @@
 # Deploys the joiner companion to Azure App Service (Linux, Node) in Italy North.
 #
 # Usage (after `az login --tenant <tenant-domain>`):
-#   TEAM=NN RG=<resource-group> APP=app-teamNN-joiner-xxxx ./scripts/deploy-azure.sh
+#   TEAM=04 APP=app-team04-joiner-a8a4 ./scripts/deploy-azure.sh
+#   (RG defaults to the one resource group the team account can see)
 #
 # Creates the plan and web app the first time, then just redeploys. Contains no secrets:
 # the Claude key is set separately as an app setting (see SET_KEY below).
 set -euo pipefail
 
 : "${TEAM:?Set TEAM to your two-digit team number}"
-: "${RG:?Set RG to your team resource group}"
+# The team account can only see its own resource group, so default to it (never hard-code the name: it is on the team sheet).
+RG="${RG:-$(az group list --query "[0].name" -o tsv)}"
+: "${RG:?No resource group found. Run az login --tenant <tenant-domain> first}"
 : "${APP:?Set APP to the web app name, e.g. app-team${TEAM}-joiner-<suffix>}"
 # UK South has no B1 App Service quota in the shared subscription, so Italy North (also allowed).
 LOCATION="${LOCATION:-italynorth}"
