@@ -60,3 +60,11 @@ describe('planCatchUp', () => {
     expect(run('aisha', '2026-11-10').plan).toEqual([])
   })
 })
+
+describe('planCatchUp and the first-week plan', () => {
+  it('plans the recommended sessions for the role', () => {
+    const { plan, after } = run('priya', '2026-12-07')
+    expect(plan.find((p) => p.stepId === 'mgr-plan-week-one')?.value).toContain('tech-arch')
+    expect(after.steps.find((s) => s.id === 'mgr-plan-week-one')?.state).toBe('done')
+  })
+})

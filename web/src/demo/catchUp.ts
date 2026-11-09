@@ -1,6 +1,7 @@
 import { GOAL_SEPARATOR, suggestedGoals } from '../data/goals'
 import { buildJourney, type JourneyInput, type JourneyView, type StepView } from '../domain/journey'
 import { PULSE_STEP_IDS } from '../domain/pulse'
+import { joinPlan, recommendedIds, WEEK_ONE_STEP } from '../domain/weekOne'
 import type { Owner, Persona, StageId } from '../domain/types'
 
 /**
@@ -30,6 +31,7 @@ function shouldBeDone(s: StepView, j: JourneyView): boolean {
 
 function defaultValue(s: StepView, persona: Persona): string | undefined {
   if (s.id === 'mgr-set-goals') return suggestedGoals[persona.jobFamily].join(GOAL_SEPARATOR)
+  if (s.id === WEEK_ONE_STEP) return joinPlan(recommendedIds(persona.jobFamily))
   return s.options?.[0]?.value
 }
 

@@ -559,6 +559,18 @@ export const stepCatalogue: StepDefinition[] = [
     minutes: 10,
   },
   {
+    id: 'mgr-plan-week-one',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'task',
+    icon: 'event',
+    title: 'Plan their first week',
+    body: 'Pick the sessions that will make the first week count. They appear in the joiner’s Day 1 plan and calendar.',
+    unlock: { type: 'always' },
+    dueOffsetDays: -5,
+    minutes: 5,
+  },
+  {
     id: 'welcome-pack',
     stage: 'manager-ready',
     owner: 'joiner',

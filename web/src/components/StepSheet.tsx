@@ -4,6 +4,8 @@ import { useDemo } from '../demo/useDemo'
 import { STAGES } from '../domain/journey'
 import { GOAL_SEPARATOR } from '../data/goals'
 import { repository } from '../data/repository'
+import { formatShortDate } from '../domain/dates'
+import { plannedWeekOne } from '../domain/weekOne'
 import { IconTile } from './IconTile'
 import { GlossaryText } from './GlossaryText'
 import { StepActions } from './StepActions'
@@ -19,6 +21,7 @@ export function StepSheet({ stepId, onClose }: { stepId: string | null; onClose:
   // The welcome pack carries the goals the manager set (a chain reaction from the manager view).
   const goalsValue = journey.steps.find((s) => s.id === 'mgr-set-goals')?.value
   const goals = goalsValue ? goalsValue.split(GOAL_SEPARATOR).filter(Boolean) : []
+  const weekOne = plannedWeekOne(journey)
   const managerName = repository.getPerson(journey.persona.managerId)?.name.split(' ')[0] ?? 'your manager'
 
   return (
@@ -57,6 +60,20 @@ export function StepSheet({ stepId, onClose }: { stepId: string | null; onClose:
                 {goals.map((g) => (
                   <Typography key={g} component="li" variant="body2" sx={{ mb: 0.5 }}>
                     {g}
+                  </Typography>
+                ))}
+              </Box>
+            </Box>
+          )}
+          {step.id === 'welcome-pack' && step.state !== 'locked' && weekOne && weekOne.length > 0 && (
+            <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 2, mb: 3 }}>
+              <Typography variant="overline" color="text.secondary">
+                Your first week, planned by {managerName}
+              </Typography>
+              <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                {weekOne.map((i) => (
+                  <Typography key={i.id} component="li" variant="body2" sx={{ mb: 0.5 }}>
+                    {formatShortDate(i.date)}, {i.time}: {i.title}
                   </Typography>
                 ))}
               </Box>

@@ -128,3 +128,21 @@ describe('Manager view: a joiner who has gone quiet', () => {
     expect(repository.listEvents('priya').some((e) => e.type === 'chat_message' && JSON.stringify(e.payload).includes('looking forward to having you'))).toBe(true)
   })
 })
+
+describe('Manager view: planning the first week', () => {
+  it('lets the manager pick sessions, and shows them as done afterwards', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/priya', { role: 'manager' })
+
+    await user.click(screen.getByText('Plan their first week'))
+    const sheet = await screen.findByRole('dialog', { name: 'Plan their first week' })
+    // The sessions that suit an engineer are ticked to begin with.
+    expect(within(sheet).getByRole('checkbox', { name: /Architecture walkthrough/ })).toBeChecked()
+    expect(within(sheet).getByRole('checkbox', { name: /Engineering guild lunch/ })).not.toBeChecked()
+
+    await user.click(within(sheet).getByRole('checkbox', { name: /Engineering guild lunch/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Add to Priya’s first week' }))
+
+    expect(repository.listEvents('priya').some((e) => JSON.stringify(e.payload ?? {}).includes('mgr-plan-week-one') && JSON.stringify(e.payload ?? {}).includes('tech-guild'))).toBe(true)
+  })
+})
