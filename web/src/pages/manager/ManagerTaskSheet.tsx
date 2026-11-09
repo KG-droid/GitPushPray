@@ -229,7 +229,7 @@ function LaptopSpecForm({
       <Typography variant="caption" color="text.secondary">
         {current && model
           ? `${name} has chosen the ${model.label}. Changing the spec clears that choice so they can pick again, and the order will need your approval again.`
-          : `${name} will then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in this spec.`}
+          : `${name} will then choose a Surface, HP EliteBook or Apple MacBook in this spec.`}
       </Typography>
       <Stack direction="row" spacing={1}>
         <Button

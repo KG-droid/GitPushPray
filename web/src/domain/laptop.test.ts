@@ -19,9 +19,14 @@ const completed = (personaId: string, day: string, stepId: string, value: string
   event(personaId, day, 'step_completed', { stepId, value })
 
 describe('laptop spec and model', () => {
-  it('offers only the bank’s own devices', () => {
+  it('offers only the bank’s approved devices', () => {
     const kit = journey('priya', '2026-11-09').steps.find((s) => s.id === 'choose-kit')
-    expect(kit?.options?.map((o) => o.label)).toEqual(['Surface Pro', 'Surface Laptop', 'HP EliteBook G11'])
+    expect(kit?.options?.map((o) => o.label)).toEqual([
+      'Surface Pro',
+      'Surface Laptop',
+      'HP EliteBook G11',
+      'Apple MacBook Pro',
+    ])
   })
 
   it('keeps the laptop choice locked until the manager has set the spec', () => {

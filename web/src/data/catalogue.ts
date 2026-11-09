@@ -50,6 +50,7 @@ const laptopOptions: ChoiceOption[] = [
   { value: 'surface-pro', label: 'Surface Pro', detail: '2-in-1 with a detachable keyboard, best if you move between meetings' },
   { value: 'surface-laptop', label: 'Surface Laptop', detail: 'Light, all-day battery, great for hybrid working' },
   { value: 'hp-elitebook-g11', label: 'HP EliteBook G11', detail: 'Full-size keyboard and ports, ideal at a docked desk' },
+  { value: 'macbook-pro', label: 'Apple MacBook Pro', detail: 'Faster and with a brighter screen, for heavier workloads' },
 ]
 
 /** The laptop choice is due, and changes close, two weeks before Day 1 so IT has time to build it. */
@@ -338,6 +339,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'A short intro from your manager, what your team does and what your first weeks will look like.',
     unlock: { type: 'daysToStart', atMost: 35 },
     lockedHint: 'Unlocks 5 weeks before you start.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
   {
     id: 'meet-buddy',
@@ -349,6 +352,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Your buddy is a friendly colleague to ask the questions you’d rather not ask your manager.',
     unlock: { type: 'stepDone', stepId: 'mgr-assign-buddy' },
     lockedHint: 'Your manager is matching you with a buddy.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
   {
     id: 'say-hello',
@@ -360,6 +365,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Send a quick hello. Not sure what to say? We’ve suggested a few icebreakers.',
     unlock: { type: 'stepDone', stepId: 'mgr-assign-buddy' },
     lockedHint: 'Unlocks when your buddy is assigned.',
+    href: '/people',
+    hrefLabel: 'Message your buddy',
     minutes: 2,
   },
   {
@@ -372,6 +379,8 @@ export const stepCatalogue: StepDefinition[] = [
     body: 'Faces, names and a fun fact for everyone you’ll be working with.',
     unlock: { type: 'daysToStart', atMost: 14 },
     lockedHint: 'Unlocks 2 weeks before you start.',
+    href: '/people',
+    hrefLabel: 'Go to People',
   },
 
   // ── Manager ready ───────────────────────────────────────
@@ -394,7 +403,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'choice',
     icon: 'laptop',
     title: 'Set their laptop spec',
-    body: 'Decide which spec your joiner gets. They then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in that spec.',
+    body: 'Decide which spec your joiner gets. They then choose a Surface, HP EliteBook or Apple MacBook in that spec.',
     audience: { jobFamilies: laptopFamilies },
     unlock: { type: 'always' },
     dueOffsetDays: -21,
