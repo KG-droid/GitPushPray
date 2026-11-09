@@ -6,7 +6,8 @@ import { useDemo, type DemoRole } from './useDemo'
 
 export const DEMO_BAR_HEIGHT = 44
 
-const routeFor = (role: DemoRole) => (role === 'manager' ? '/manager' : role === 'buddy' ? '/buddy' : '/today')
+const routeFor = (role: DemoRole) =>
+  role === 'manager' ? '/manager' : role === 'buddy' ? '/buddy' : role === 'admin' ? '/admin' : '/today'
 
 /** Always-visible red strip for presenters: switch who we're viewing as, and reset their data to redo steps. */
 export function DemoBar() {
@@ -66,6 +67,7 @@ export function DemoBar() {
           <ToggleButton value="buddy" disabled={!hasBuddy}>
             Buddy
           </ToggleButton>
+          <ToggleButton value="admin">Admin</ToggleButton>
         </ToggleButtonGroup>
         <Select
           size="small"
