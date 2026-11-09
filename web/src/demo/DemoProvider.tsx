@@ -117,7 +117,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         ...new Set(reopened.map((s) => (s.owner === by ? 'you' : s.owner === 'joiner' ? target.firstName : 'your team'))),
       ].join(' and ')
       setToast(
-        reopened.length
+        stepId === 'accessibility-needs' && opts?.value === 'yes'
+          ? 'Thank you. Your manager will get in contact with you as soon as they are able.'
+          : reopened.length
           ? `Change saved. That’s sent ${reopened.length} thing${reopened.length > 1 ? 's' : ''} back to ${sentBackTo} to redo.`
           : forOthers.length
           ? `Done! That’s set off ${forOthers.length} more thing${forOthers.length > 1 ? 's' : ''} for ${otherName}.`

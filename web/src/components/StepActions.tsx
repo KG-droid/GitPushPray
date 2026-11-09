@@ -43,6 +43,11 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
             {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
           </Typography>
         </Stack>
+        {step.id === 'accessibility-needs' && step.value === 'yes' && (
+          <Typography variant="body2" color="text.secondary">
+            Your manager will get in contact with you as soon as they are able, to talk it through.
+          </Typography>
+        )}
         {step.doneBy === 'manager' && step.owner === 'joiner' ? (
           <Typography variant="caption" color="text.secondary">
             To change this, talk to your manager.
