@@ -30,8 +30,8 @@ export function AppShell() {
   const { setPanelOpen, toast, clearToast, role, journey } = useDemo()
   const isTeamView = role !== 'joiner'
   const viewerId = role === 'buddy' ? journey.persona.buddyId : journey.persona.managerId
-  const viewerName = (viewerId ? repository.getPerson(viewerId)?.name.split(' ')[0] : undefined) ?? ''
-  const pillLabel = role === 'buddy' ? 'Buddy view' : 'Manager view'
+  const viewerName = role === 'admin' ? 'People experience' : (viewerId ? repository.getPerson(viewerId)?.name.split(' ')[0] : undefined) ?? ''
+  const pillLabel = role === 'buddy' ? 'Buddy view' : role === 'admin' ? 'Admin view' : 'Manager view'
   const longPress = useLongPress(() => setPanelOpen(true))
 
   useEffect(() => {

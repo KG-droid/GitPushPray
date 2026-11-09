@@ -1,14 +1,14 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { AskRequest, HandoverRequest } from '../src/assistant/protocol.ts'
-import { ask, summariseHandover, type AssistantConfig } from './ask.ts'
+import type { AskRequest, HandoverRequest, InsightsRequest } from '../src/assistant/protocol.ts'
+import { ask, recommendFromInsights, summariseHandover, type AssistantConfig } from './ask.ts'
 
 /**
- * Node HTTP handler for /api/ask and /api/handover. The Vite dev server mounts this locally;
+ * Node HTTP handler for /api/ask, /api/handover and /api/insights. The Vite dev server mounts this locally;
  * the Azure Static Web Apps function wraps the same ask()/summariseHandover() calls.
  */
 export async function handleApi(req: IncomingMessage, res: ServerResponse, config: AssistantConfig): Promise<boolean> {
   const path = (req.url ?? '').split('?')[0]
-  if (path !== '/api/ask' && path !== '/api/handover') return false
+  if (path !== '/api/ask' && path !== '/api/handover' && path !== '/api/insights') return false
 
   if (req.method !== 'POST') {
     res.statusCode = 405
@@ -22,6 +22,13 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse, confi
   } catch {
     res.statusCode = 400
     res.end('Invalid JSON')
+    return true
+  }
+
+  if (path === '/api/insights') {
+    const result = await recommendFromInsights(body as InsightsRequest, config)
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(result))
     return true
   }
 

@@ -3,6 +3,7 @@ import { repository } from '../data/repository'
 import { addDays, toIsoDate } from '../domain/dates'
 import { buildJourney, type JourneyView } from '../domain/journey'
 import { cannedReply } from '../data/people'
+import { classifyTopic, cleanText, type FeedbackResponse } from '../domain/feedback'
 import type {
   BuddyMeetupPayload,
   ChatMessagePayload,
@@ -10,6 +11,7 @@ import type {
   MeetupKind,
   CheckId,
   CheckUpdatedPayload,
+  FeedbackSubmittedPayload,
   Owner,
   StartDateChangedPayload,
   StepCompletedPayload,
@@ -205,6 +207,51 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [persona.id, stamp],
   )
 
+  const answeredCheckIns = useMemo(
+    () =>
+      repository
+        .listEvents(persona.id)
+        .filter((e) => e.type === 'feedback_submitted' && e.at.slice(0, 10) <= today)
+        .map((e) => (e.payload as unknown as FeedbackSubmittedPayload).milestone),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [persona.id, today, eventsVersion],
+  )
+
+  const submitCheckIn = useCallback(
+    (input: Pick<FeedbackResponse, 'milestone' | 'mood' | 'enps' | 'missed' | 'better' | 'note'>) => {
+      if (answeredCheckIns.includes(input.milestone)) return
+      // The answers go in the anonymous store; the joiner's own record only notes that they answered.
+      repository.addFeedback({
+        at: stamp(),
+        milestone: input.milestone,
+        jobFamily: persona.jobFamily,
+        site: persona.site,
+        mood: input.mood,
+        enps: input.enps,
+        missed: cleanText(input.missed),
+        better: cleanText(input.better),
+        note: cleanText(input.note),
+      })
+      const payload: FeedbackSubmittedPayload = { milestone: input.milestone }
+      repository.addEvent({ personaId: persona.id, type: 'feedback_submitted', at: stamp(), payload: { ...payload } })
+      setToast('Thank you. That goes straight to the team looking after new joiners.')
+    },
+    [answeredCheckIns, persona, stamp],
+  )
+
+  const logQuestion = useCallback(
+    (question: string, outcome: { handedOver: boolean; cited: boolean }) => {
+      repository.addQuestionLog({
+        at: stamp(),
+        jobFamily: persona.jobFamily,
+        site: persona.site,
+        topic: classifyTopic(question),
+        ...outcome,
+      })
+    },
+    [persona, stamp],
+  )
+
   const value: DemoContextValue = {
     ...state,
     today,
@@ -226,6 +273,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     typingId,
     logMeetup,
     recordHandover,
+    answeredCheckIns,
+    submitCheckIn,
+    logQuestion,
   }
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>

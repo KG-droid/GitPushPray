@@ -2,6 +2,8 @@ import type { JourneyEvent, Person, Persona } from '../domain/types'
 import { checkCatalogue, stepCatalogue } from './catalogue'
 import { seedEvents, seedPeople, seedPersonas } from './seed'
 import type { CheckDefinition, StepDefinition } from '../domain/types'
+import type { FeedbackResponse, QuestionLog } from '../domain/feedback'
+import { seedFeedback, seedQuestionLogs } from './insightsSeed'
 
 /**
  * The only way screens read or write data. Today this is backed by seed data plus localStorage;
@@ -15,6 +17,12 @@ export interface Repository {
   listChecks(): CheckDefinition[]
   listEvents(personaId: string): JourneyEvent[]
   addEvent(event: Omit<JourneyEvent, 'id'>): JourneyEvent
+  /** Anonymous check-in answers: the synthetic history plus anything submitted in this browser */
+  listFeedback(): FeedbackResponse[]
+  addFeedback(response: Omit<FeedbackResponse, 'id'>): FeedbackResponse
+  /** Anonymous assistant log (topic only, never the question) */
+  listQuestionLogs(): QuestionLog[]
+  addQuestionLog(log: Omit<QuestionLog, 'id'>): QuestionLog
   /** Remove demo-added events for one persona (or everyone) and go back to the seed data */
   reset(personaId?: string): void
   /** Called whenever events change; returns an unsubscribe function */
@@ -24,6 +32,12 @@ export interface Repository {
 type MinimalStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 
 const STORAGE_KEY = 'lbg-joiner:events:v1'
+const INSIGHTS_KEY = 'lbg-joiner:insights:v1'
+
+interface InsightsStore {
+  feedback: FeedbackResponse[]
+  questions: QuestionLog[]
+}
 
 export function createMockRepository(storage: MinimalStorage = localStorage): Repository {
   const listeners = new Set<() => void>()
@@ -38,6 +52,20 @@ export function createMockRepository(storage: MinimalStorage = localStorage): Re
     notify()
   }
 
+  const loadInsights = (): InsightsStore => {
+    try {
+      const raw = storage.getItem(INSIGHTS_KEY)
+      return raw ? (JSON.parse(raw) as InsightsStore) : { feedback: [], questions: [] }
+    } catch {
+      return { feedback: [], questions: [] }
+    }
+  }
+  const saveInsights = (store: InsightsStore) => {
+    storage.setItem(INSIGHTS_KEY, JSON.stringify(store))
+    notify()
+  }
+  const newId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+
   return {
     listPersonas: () => seedPersonas,
     getPersona: (id) => seedPersonas.find((p) => p.id === id),
@@ -50,9 +78,24 @@ export function createMockRepository(storage: MinimalStorage = localStorage): Re
       save([...load(), full])
       return full
     },
+    listFeedback: () => [...seedFeedback, ...loadInsights().feedback],
+    addFeedback: (response) => {
+      const full = { ...response, id: newId('fb') }
+      const store = loadInsights()
+      saveInsights({ ...store, feedback: [...store.feedback, full] })
+      return full
+    },
+    listQuestionLogs: () => [...seedQuestionLogs, ...loadInsights().questions],
+    addQuestionLog: (log) => {
+      const full = { ...log, id: newId('q') }
+      const store = loadInsights()
+      saveInsights({ ...store, questions: [...store.questions, full] })
+      return full
+    },
     reset: (personaId) => {
       if (!personaId) {
         storage.removeItem(STORAGE_KEY)
+        storage.removeItem(INSIGHTS_KEY)
         notify()
         return
       }

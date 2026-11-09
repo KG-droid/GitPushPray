@@ -55,7 +55,7 @@ export function DemoPanel() {
           fullWidth
           size="small"
           color="primary"
-          value={demo.role}
+          value={demo.role === 'admin' ? null : demo.role}
           onChange={(_, role: DemoRole | null) => {
             if (!role) return
             demo.setRole(role)
@@ -69,6 +69,19 @@ export function DemoPanel() {
             {buddyName ?? 'No buddy'} (buddy)
           </ToggleButton>
         </ToggleButtonGroup>
+        <Button
+          fullWidth
+          size="small"
+          sx={{ mt: 1 }}
+          variant={demo.role === 'admin' ? 'contained' : 'outlined'}
+          onClick={() => {
+            demo.setRole('admin')
+            navigate('/admin')
+            demo.setPanelOpen(false)
+          }}
+        >
+          Admin (people experience team)
+        </Button>
 
         <Typography variant="subtitle2" sx={{ mt: 2 }}>
           Joiner
@@ -85,6 +98,7 @@ export function DemoPanel() {
                 demo.setPersona(p.id)
                 if (demo.role === 'manager') navigate('/manager')
                 if (demo.role === 'buddy') navigate('/buddy')
+                if (demo.role === 'admin') navigate('/admin')
               }}
               sx={{ borderRadius: 2 }}
             >

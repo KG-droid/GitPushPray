@@ -19,6 +19,7 @@ import { StepSheet } from '../../components/StepSheet'
 import { useDemo } from '../../demo/useDemo'
 import { countdownLabel, daysUntil, formatShortDate } from '../../domain/dates'
 import { NoticeCard } from '../../components/NoticeCard'
+import { FeedbackPrompt } from '../../components/FeedbackPrompt'
 
 function greeting() {
   const h = new Date().getHours()
@@ -53,6 +54,8 @@ export function TodayPage() {
       ))}
 
       <CountdownCard />
+
+      <FeedbackPrompt />
 
       <Box>
         <Typography variant="overline" color="text.secondary">

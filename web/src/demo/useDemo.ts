@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react'
 import type { JourneyView } from '../domain/journey'
+import type { CheckInMilestone } from '../domain/feedback'
 import type { CheckId, HandoverSentPayload, MeetupKind, Owner } from '../domain/types'
 
-export type DemoRole = 'joiner' | 'manager' | 'buddy'
+export type DemoRole = 'joiner' | 'manager' | 'buddy' | 'admin'
 
 export interface DemoState {
   personaId: string
@@ -41,6 +42,12 @@ export interface DemoContextValue extends DemoState {
   logMeetup(kind: MeetupKind): void
   /** Record that the joiner's question was handed to a person (so their buddy or manager can see it) */
   recordHandover(route: HandoverSentPayload['route'], summary: string): void
+  /** Check-ins the selected joiner has already answered */
+  answeredCheckIns: CheckInMilestone[]
+  /** Submit a check-in. Stored anonymously; only the fact that it was done is tied to the joiner. */
+  submitCheckIn(input: { milestone: CheckInMilestone; mood?: number; enps?: number; missed?: string; better?: string; note?: string }): void
+  /** Log what the joiner asked the assistant about: a topic only, never the question text */
+  logQuestion(question: string, outcome: { handedOver: boolean; cited: boolean }): void
 }
 
 export interface ChatEntry {

@@ -4,6 +4,7 @@ import AccountTreeRounded from '@mui/icons-material/AccountTreeRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import FlagRounded from '@mui/icons-material/FlagRounded'
 import FavoriteRounded from '@mui/icons-material/FavoriteRounded'
+import RateReviewRounded from '@mui/icons-material/RateReviewRounded'
 import PublicRounded from '@mui/icons-material/PublicRounded'
 import StarsRounded from '@mui/icons-material/StarsRounded'
 import { useNavigate } from 'react-router-dom'
@@ -11,14 +12,16 @@ import { IconTile } from '../../components/IconTile'
 import { repository } from '../../data/repository'
 import { useDemo } from '../../demo/useDemo'
 import { goalCascade } from '../../domain/explore'
+import { dueCheckIns } from '../../domain/feedback'
 
 /** Explore hub: You (goals, organisation) · Your benefits · Lloyds culture (purpose, values). */
 export function ExplorePage() {
-  const { journey } = useDemo()
+  const { journey, answeredCheckIns } = useDemo()
   const navigate = useNavigate()
   const { persona } = journey
   const manager = repository.getPerson(persona.managerId)?.name.split(' ')[0] ?? 'Your manager'
   const cascade = goalCascade(journey)
+  const feedbackDue = dueCheckIns(-journey.daysToStart, answeredCheckIns).length > 0
   const benefitChosen = journey.steps.find((s) => s.id === 'choose-benefits')?.state === 'done'
 
   return (
@@ -71,6 +74,16 @@ export function ExplorePage() {
           title="Our values"
           body="Five values, what they look like day to day, and colleague stories"
           onClick={() => navigate('/explore/values')}
+        />
+      </Group>
+
+      <Group title="Help us improve">
+        <HubCard
+          icon={<RateReviewRounded color="primary" />}
+          title="Your feedback"
+          body={feedbackDue ? 'A check-in is open. Tell us how it’s going, and what we missed.' : 'Tell us what we missed and what we could do better'}
+          onClick={() => navigate('/explore/feedback')}
+          highlight={feedbackDue}
         />
       </Group>
     </Stack>

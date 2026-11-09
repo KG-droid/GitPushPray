@@ -69,6 +69,7 @@ export type JourneyEventType =
   | 'chat_message'
   | 'buddy_meetup'
   | 'handover_sent'
+  | 'feedback_submitted'
 
 export interface JourneyEvent {
   id: string
@@ -115,6 +116,10 @@ export interface BuddyMeetupPayload {
 export interface HandoverSentPayload {
   route: 'screening' | 'hr' | 'manager' | 'buddy'
   summary: string
+}
+
+export interface FeedbackSubmittedPayload {
+  milestone: 'day-1' | 'week-1' | 'day-30'
 }
 
 export interface PulsePayload {

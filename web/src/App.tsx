@@ -14,6 +14,8 @@ import { ChecksPage } from './pages/joiner/ChecksPage'
 import { AskPage } from './pages/joiner/AskPage'
 import { ManagerHomePage } from './pages/manager/ManagerHomePage'
 import { ManagerJoinerPage } from './pages/manager/ManagerJoinerPage'
+import { FeedbackPage } from './pages/explore/FeedbackPage'
+import { AdminPage } from './pages/admin/AdminPage'
 import { BuddyPage } from './pages/buddy/BuddyPage'
 
 export default function App() {
@@ -30,12 +32,14 @@ export default function App() {
         <Route path="/explore/purpose" element={<PurposePage />} />
         <Route path="/explore/values" element={<ValuesPage />} />
         <Route path="/explore/values/:valueId" element={<ValueDetailPage />} />
+        <Route path="/explore/feedback" element={<FeedbackPage />} />
         <Route path="/people" element={<PeoplePage />} />
         <Route path="/people/chat/:personId" element={<ChatPage />} />
         <Route path="/ask" element={<AskPage />} />
         <Route path="/manager" element={<ManagerHomePage />} />
         <Route path="/manager/joiner/:personaId" element={<ManagerJoinerPage />} />
         <Route path="/buddy" element={<BuddyPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/today" replace />} />
       </Route>
     </Routes>

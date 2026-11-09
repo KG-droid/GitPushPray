@@ -47,3 +47,28 @@ export interface HandoverResponse {
   summary: string
   mode: 'live' | 'offline'
 }
+
+/** Aggregated, anonymous numbers for the admin insights. No names, no question text, no raw comments. */
+export interface InsightsSummary {
+  scope: string
+  responses: number
+  questions: number
+  enps: { n: number; score: number | null; promoters: number; passives: number; detractors: number }
+  mood: { milestone: string; avg: number | null }[]
+  topics: { topic: string; count: number; change: 'rising' | 'falling' | 'steady'; handoverRate: number }[]
+  themes: { theme: string; count: number }[]
+}
+
+export interface InsightsRequest {
+  summary: InsightsSummary
+}
+
+export interface Recommendation {
+  title: string
+  detail: string
+}
+
+export interface InsightsResponse {
+  recommendations: Recommendation[]
+  mode: 'live' | 'offline'
+}

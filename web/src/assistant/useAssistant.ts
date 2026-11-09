@@ -60,7 +60,7 @@ const nextId = () => `m${Date.now()}-${++idCounter}`
 
 /** Chat state for the Ask tab, kept per persona for the browser session. */
 export function useAssistant(journey: JourneyView) {
-  const { recordHandover } = useDemo()
+  const { recordHandover, logQuestion } = useDemo()
   const personaId = journey.persona.id
   const [messages, setMessages] = useState<ChatMessage[]>(() => load(personaId))
   const [mode, setMode] = useState<'live' | 'offline' | null>(null)
@@ -101,6 +101,8 @@ export function useAssistant(journey: JourneyView) {
       ])
 
       abort.current = new AbortController()
+      let handedOver = false
+      let cited = false
       try {
         await streamAsk(
           { messages: history, joiner },
@@ -113,11 +115,13 @@ export function useAssistant(journey: JourneyView) {
                 update(replyId, (m) => ({ ...m, text: m.text + e.text }))
                 break
               case 'citation':
+                cited = true
                 update(replyId, (m) =>
                   m.citations.some((c) => c.title === e.title) ? m : { ...m, citations: [...m.citations, { title: e.title, quote: e.quote }] },
                 )
                 break
               case 'handover':
+                handedOver = true
                 update(replyId, (m) => ({ ...m, handover: { route: e.route, status: 'suggested' } }))
                 break
               case 'error':
@@ -130,6 +134,7 @@ export function useAssistant(journey: JourneyView) {
           abort.current.signal,
         )
       } catch {
+        handedOver = true
         update(replyId, (m) => ({
           ...m,
           error: 'I couldn’t reach the assistant just now.',
@@ -137,9 +142,11 @@ export function useAssistant(journey: JourneyView) {
         }))
       } finally {
         update(replyId, (m) => ({ ...m, text: m.text.trimEnd(), streaming: false }))
+        // For the admin trends: the topic and outcome only, never the question itself.
+        logQuestion(text, { handedOver, cited })
       }
     },
-    [busy, joiner, messages],
+    [busy, joiner, logQuestion, messages],
   )
 
   /** Offer a person even when the assistant didn't suggest one. */
