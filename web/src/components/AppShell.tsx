@@ -11,6 +11,7 @@ import AutoAwesomeRounded from '@mui/icons-material/AutoAwesomeRounded'
 import { BrandMark } from './BrandMark'
 import { ThemeModeButton } from './ThemeModeButton'
 import { DemoPanel } from '../demo/DemoPanel'
+import { DemoBar, DEMO_BAR_HEIGHT } from '../demo/DemoBar'
 import { useDemo } from '../demo/useDemo'
 import { useLongPress } from './useLongPress'
 
@@ -44,6 +45,7 @@ export function AppShell() {
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: { xs: 'background.default', sm: 'action.hover' } }}>
+      <DemoBar />
       <Box
         sx={{
           maxWidth: 440,
@@ -59,7 +61,7 @@ export function AppShell() {
           position="sticky"
           color="inherit"
           elevation={0}
-          sx={{ bgcolor: 'background.default', pt: 'env(safe-area-inset-top)' }}
+          sx={{ bgcolor: 'background.default', top: `calc(${DEMO_BAR_HEIGHT}px + env(safe-area-inset-top))` }}
         >
           <Toolbar sx={{ justifyContent: 'space-between' }}>
             {/* Long-press the logo (or press Shift+D) to open the presenter's demo controls. */}
