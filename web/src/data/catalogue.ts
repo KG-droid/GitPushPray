@@ -61,6 +61,29 @@ const laptopSpecOptions: ChoiceOption[] = [
   { value: 'developer', label: 'Developer', detail: 'Core Ultra 7, 32 GB RAM, 1 TB SSD. Room to build and run code locally.' },
 ]
 
+/** Everything else you might need to work well, from home or in the office. Pick as many as you like. */
+const equipmentOptions: ChoiceOption[] = [
+  { value: 'none', label: 'Nothing else, thanks', detail: 'You can still ask for equipment later through the IT service desk.' },
+
+  { group: 'Workstation', value: 'monitor', label: 'External monitor', detail: '24-inch full HD, with a height-adjustable stand' },
+  { group: 'Workstation', value: 'chair', label: 'Ergonomic chair', detail: 'Adjustable seat height, back and arm support' },
+  { group: 'Workstation', value: 'sit-stand-desk', label: 'Sit-stand desk', detail: 'Electric height adjustment, for home working' },
+  { group: 'Workstation', value: 'laptop-stand', label: 'Laptop stand with keyboard and mouse', detail: 'Raises the screen to eye level' },
+  { group: 'Workstation', value: 'headset', label: 'Headset', detail: 'Noise-cancelling, for calls from home' },
+  { group: 'Workstation', value: 'webcam', label: 'Webcam', detail: 'Full HD with a privacy shutter' },
+
+  { group: 'Assistive technology', value: 'screen-reader', label: 'Screen reader (JAWS or NVDA)', detail: 'Reads the screen aloud, for blind or low-vision colleagues' },
+  { group: 'Assistive technology', value: 'screen-magnifier', label: 'Screen magnifier (ZoomText)', detail: 'Enlarges the screen and adjusts contrast and colour' },
+  { group: 'Assistive technology', value: 'speech-recognition', label: 'Speech recognition (Dragon)', detail: 'Dictate and control your computer by voice' },
+  { group: 'Assistive technology', value: 'read-write-software', label: 'Reading and writing support (Read&Write)', detail: 'Text-to-speech, word prediction and a screen ruler, helpful with dyslexia' },
+  { group: 'Assistive technology', value: 'ergonomic-keyboard-mouse', label: 'Ergonomic keyboard and vertical mouse', detail: 'For RSI, arthritis or limited hand and wrist movement' },
+  { group: 'Assistive technology', value: 'trackball-switch', label: 'Trackball or switch access', detail: 'Alternative controls if a standard mouse or keyboard is hard to use' },
+  { group: 'Assistive technology', value: 'large-monitor', label: 'Large, high-contrast monitor', detail: '32-inch, with anti-glare screen' },
+  { group: 'Assistive technology', value: 'live-captions', label: 'Live captions and transcription', detail: 'Captions in meetings, for deaf and hard-of-hearing colleagues' },
+  { group: 'Assistive technology', value: 'footrest-support', label: 'Footrest, lumbar or wrist support', detail: 'For back, hip or joint conditions' },
+  { group: 'Assistive technology', value: 'assessment', label: 'I’m not sure what I need', detail: 'Occupational Health will arrange a workplace assessment' },
+]
+
 export const stepCatalogue: StepDefinition[] = [
   // ── Offer ───────────────────────────────────────────────
   {
@@ -119,6 +142,23 @@ export const stepCatalogue: StepDefinition[] = [
     resetBy: ['mgr-set-device-spec'],
     changeUntilOffsetDays: laptopChangeDeadline,
     changeClosedHint: 'Your laptop is being prepared. Ask your manager if you need a change.',
+  },
+  {
+    id: 'choose-equipment',
+    stage: 'unlock',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'accessibility_new',
+    title: 'Choose your equipment and assistive technology',
+    body: 'A monitor or chair for working from home, or assistive technology if you have a health condition, disability or access need. Pick as many as you like. What you choose here goes to IT and Occupational Health, and your manager only sees that adjustments were requested, not which ones.',
+    unlock: { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work.',
+    dueOffsetDays: laptopChangeDeadline,
+    minutes: 3,
+    options: equipmentOptions,
+    multiple: true,
+    changeUntilOffsetDays: laptopChangeDeadline,
+    changeClosedHint: 'Your equipment is being prepared. Contact the IT service desk if you need something changed.',
   },
   {
     id: 'home-kit-address',

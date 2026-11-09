@@ -154,6 +154,8 @@ export interface ChoiceOption {
   value: string
   label: string
   detail?: string
+  /** Heading to list this option under, for long lists */
+  group?: string
 }
 
 export interface StepDefinition {
@@ -177,6 +179,8 @@ export interface StepDefinition {
   dueOffsetDays?: number
   minutes?: number
   options?: ChoiceOption[]
+  /** A choice where several options can be picked (stored comma-separated in the step value) */
+  multiple?: boolean
   /** Steps that undo this one when they are (re)done later, e.g. changing the laptop clears its approval */
   resetBy?: string[]
   /** Once done, this can still be changed until this many days from the (current) start date */

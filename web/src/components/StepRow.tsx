@@ -3,6 +3,7 @@ import CheckCircleRounded from '@mui/icons-material/CheckCircleRounded'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import { formatShortDate } from '../domain/dates'
+import { pickedLabels } from '../domain/equipment'
 import type { StepView } from '../domain/journey'
 import { IconTile } from './IconTile'
 
@@ -27,7 +28,7 @@ export function StepRow({
         ? step.teamHint ?? step.lockedHint ?? 'Not started yet'
         : `On their list${step.dueDate ? ` · by ${formatShortDate(step.dueDate)}` : ''}`
     : step.state === 'done'
-      ? step.options?.find((o) => o.value === step.value)?.label ?? (step.kind === 'content' ? 'Read' : 'Done')
+      ? pickedLabels(step) || (step.kind === 'content' ? 'Read' : 'Done')
       : step.state === 'locked'
         ? step.lockedHint ?? 'Unlocks later'
         : step.dueDate

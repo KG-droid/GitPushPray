@@ -1,4 +1,5 @@
 import type { SvgIconProps } from '@mui/material'
+import AccessibilityNewRounded from '@mui/icons-material/AccessibilityNewRounded'
 import AutoStoriesRounded from '@mui/icons-material/AutoStoriesRounded'
 import BadgeRounded from '@mui/icons-material/BadgeRounded'
 import CalendarMonthRounded from '@mui/icons-material/CalendarMonthRounded'
@@ -34,6 +35,7 @@ import ForestRounded from '@mui/icons-material/ForestRounded'
 import type { ComponentType } from 'react'
 
 const icons: Record<string, ComponentType<SvgIconProps>> = {
+  accessibility_new: AccessibilityNewRounded,
   auto_stories: AutoStoriesRounded,
   badge: BadgeRounded,
   calendar: CalendarMonthRounded,

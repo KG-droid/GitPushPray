@@ -1,4 +1,5 @@
 import { daysUntil } from './dates'
+import { managerEquipmentSummary } from './equipment'
 import type { JourneyView, StepView } from './journey'
 import { laptopLabel, laptopOrder } from './laptop'
 import type { JourneyEvent, PulsePayload } from './types'
@@ -37,6 +38,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
   const urgent = tasks.filter((t) => t.state === 'available' && t.dueDate && daysUntil(t.dueDate, journey.today) <= 7)
   const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content')
   const kitLabel = laptopLabel(laptopOrder(journey))
+  const equipment = journey.steps.find((s) => s.id === 'choose-equipment')
   const moved = journey.notices.find((n) => n.kind === 'start-date-moved')
 
   const status: JoinerStatus =
@@ -61,7 +63,10 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
     },
     joinerDone: joinerSteps.filter((s) => s.state === 'done').length,
     joinerTotal: joinerSteps.length,
-    sharedChoices: kitLabel ? [{ label: 'Laptop', value: kitLabel }] : [],
+    sharedChoices: [
+      ...(kitLabel ? [{ label: 'Laptop', value: kitLabel }] : []),
+      ...(equipment?.state === 'done' ? managerEquipmentSummary(equipment) : []),
+    ],
     startDateMoved: moved && moved.kind === 'start-date-moved' ? { from: moved.from, to: moved.to } : undefined,
     pulse: pulseTrend(events, journey),
   }
