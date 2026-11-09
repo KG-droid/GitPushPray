@@ -92,7 +92,7 @@ We offer paid time off for dependants' emergencies, volunteering (2 days a year)
     id: 'it-acceptable-use',
     title: 'IT and Acceptable Use Policy',
     text: `1. Your equipment
-You receive a bank laptop set up for your role. Office-based joiners can choose from approved models before they start. Contact centre and branch colleagues use a ready-configured workstation.
+You receive a bank laptop set up for your role. Your manager decides the spec (standard, or developer for roles that build software), then office-based joiners choose a Surface Pro, Surface Laptop or HP EliteBook G11 before they start. Contact centre and branch colleagues use a ready-configured workstation.
 
 2. Personal devices
 Bank data must only be accessed on bank devices, or on a personal phone enrolled in the approved mobile app for email and chat. Never forward work emails to personal accounts.

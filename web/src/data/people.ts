@@ -65,6 +65,17 @@ export function managerIntro(personId: string, joinerFirstName: string): string 
   return custom[personId] ?? introMessage(personId, joinerFirstName, false)
 }
 
+/** Words that keep their capital when an "Ask me about" topic starts mid-sentence. */
+const properNouns = new Set(['Python', 'Birmingham', 'Bristol', 'Leeds', 'Welsh'])
+
+/** A ready-to-send question built from one of a person's "Ask me about" topics. */
+export function askAboutDraft(personName: string, topic: string): string {
+  const [word] = topic.split(' ')
+  const keepCase = properNouns.has(word) || word === word.toUpperCase()
+  const phrase = keepCase ? topic : topic[0].toLowerCase() + topic.slice(1)
+  return `Hi ${personName.split(' ')[0]}! I’d love to hear about ${phrase}.`
+}
+
 /** Suggested first messages for the buddy chat. */
 export const icebreakers = [
   'Hi! Thanks for being my buddy 😊',

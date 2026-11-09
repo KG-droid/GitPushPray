@@ -308,6 +308,7 @@ function buildSeedEvents(): JourneyEvent[] {
   // Priya: buddy assigned, has picked a learning bite. Goals not set yet (good for the chain-reaction demo).
   done('priya', '2026-11-02', 'mgr-assign-buddy', 'manager')
   done('priya', '2026-10-24', 'learning-picks', 'joiner', 'banking-101')
+  done('priya', '2026-11-02', 'mgr-set-device-spec', 'manager', 'developer')
 
   // Rhys: buddy assigned, benefits picked.
   done('rhys', '2026-11-03', 'mgr-assign-buddy', 'manager')
@@ -315,7 +316,8 @@ function buildSeedEvents(): JourneyEvent[] {
 
   // Margaret: buddy assigned, kit chosen and approved.
   done('margaret', '2026-10-20', 'mgr-assign-buddy', 'manager')
-  done('margaret', '2026-10-21', 'choose-kit', 'joiner', 'surface-laptop-7')
+  done('margaret', '2026-10-20', 'mgr-set-device-spec', 'manager', 'standard')
+  done('margaret', '2026-10-21', 'choose-kit', 'joiner', 'surface-laptop')
   done('margaret', '2026-10-22', 'mgr-request-device', 'manager')
   done('margaret', '2026-10-25', 'choose-benefits', 'joiner', 'private-medical')
 
@@ -351,7 +353,8 @@ function buildSeedEvents(): JourneyEvent[] {
   // Tom: starts next week; nearly everything done, but Daniel still has to request his badge.
   for (const [stepId, by, at, value] of [
     ['mgr-assign-buddy', 'manager', '2026-10-20'],
-    ['choose-kit', 'joiner', '2026-10-12', 'macbook-pro-14'],
+    ['mgr-set-device-spec', 'manager', '2026-10-10', 'developer'],
+    ['choose-kit', 'joiner', '2026-10-12', 'hp-elitebook-g11'],
     ['mgr-request-device', 'manager', '2026-10-13'],
     ['choose-benefits', 'joiner', '2026-10-14', 'cycle-to-work'],
     ['mgr-set-goals', 'manager', '2026-11-02'],

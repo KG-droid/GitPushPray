@@ -22,6 +22,21 @@ describe('People tab', () => {
     expect(within(team).getByText('Bethan Rees')).toBeInTheDocument()
   })
 
+  it('opens the chat with an "Ask me about" question ready to send', async () => {
+    const user = userEvent.setup()
+    renderApp('/people')
+
+    await user.click(screen.getByRole('button', { name: 'Ask Daniel about Our architecture' }))
+
+    expect(screen.getByText('Daniel Okafor')).toBeInTheDocument()
+    const input = screen.getByRole('textbox', { name: 'Your message' })
+    expect(input).toHaveValue('Hi Daniel! I’d love to hear about our architecture.')
+    expect(input).toHaveFocus()
+    // Nothing is sent until the joiner presses send.
+    const thread = screen.getByLabelText('Conversation with Daniel Okafor')
+    expect(within(thread).queryByText(/our architecture/)).not.toBeInTheDocument()
+  })
+
   it('explains the wait when no buddy has been assigned yet', () => {
     renderApp('/people', { personaId: 'sam' })
     expect(screen.getByText(/Your manager is matching you with a buddy/)).toBeInTheDocument()
@@ -30,12 +45,14 @@ describe('People tab', () => {
 })
 
 describe('Buddy chat', () => {
-  it('sends an icebreaker, completes "say hello" and gets a reply', async () => {
+  it('fills in an icebreaker, sends it, completes "say hello" and gets a reply', async () => {
     const user = userEvent.setup()
     renderApp('/people/chat/buddy-chloe')
 
     expect(screen.getByText(/I’m Chloe, your buddy/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Fancy a virtual coffee before I start?' }))
+    expect(screen.getByRole('textbox', { name: 'Your message' })).toHaveValue('Fancy a virtual coffee before I start?')
+    await user.click(screen.getByRole('button', { name: 'Send message' }))
 
     expect(await screen.findByText(/nice one/)).toBeInTheDocument()
     expect(await screen.findByText(/Thursday at 11/, {}, { timeout: 3000 })).toBeInTheDocument()

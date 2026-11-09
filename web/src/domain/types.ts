@@ -169,6 +169,12 @@ export interface StepDefinition {
   dueOffsetDays?: number
   minutes?: number
   options?: ChoiceOption[]
+  /** Steps that undo this one when they are (re)done later, e.g. changing the laptop clears its approval */
+  resetBy?: string[]
+  /** Once done, this can still be changed until this many days from the (current) start date */
+  changeUntilOffsetDays?: number
+  /** Shown once the change window has closed */
+  changeClosedHint?: string
 }
 
 export interface CheckDefinition {

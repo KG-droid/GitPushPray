@@ -47,9 +47,18 @@ export const checkCatalogue: CheckDefinition[] = [
 const laptopFamilies: JobFamily[] = ['technology', 'data', 'risk', 'graduate']
 
 const laptopOptions: ChoiceOption[] = [
-  { value: 'macbook-pro-14', label: 'MacBook Pro 14"', detail: 'Best for engineering and data work' },
-  { value: 'surface-laptop-7', label: 'Surface Laptop 7', detail: 'Light, great battery, Windows 11' },
-  { value: 'thinkpad-x1', label: 'ThinkPad X1 Carbon', detail: 'Classic keyboard, Windows 11' },
+  { value: 'surface-pro', label: 'Surface Pro', detail: '2-in-1 with a detachable keyboard, best if you move between meetings' },
+  { value: 'surface-laptop', label: 'Surface Laptop', detail: 'Light, all-day battery, great for hybrid working' },
+  { value: 'hp-elitebook-g11', label: 'HP EliteBook G11', detail: 'Full-size keyboard and ports, ideal at a docked desk' },
+]
+
+/** The laptop choice is due, and changes close, two weeks before Day 1 so IT has time to build it. */
+const laptopChangeDeadline = -14
+
+/** The manager sets the spec; the joiner then picks a model in that spec. */
+const laptopSpecOptions: ChoiceOption[] = [
+  { value: 'standard', label: 'Standard', detail: 'Core Ultra 5, 16 GB RAM, 256 GB SSD. Office apps, Teams and business systems.' },
+  { value: 'developer', label: 'Developer', detail: 'Core Ultra 7, 32 GB RAM, 1 TB SSD. Room to build and run code locally.' },
 ]
 
 export const stepCatalogue: StepDefinition[] = [
@@ -96,11 +105,20 @@ export const stepCatalogue: StepDefinition[] = [
     title: 'Choose your laptop',
     body: 'Pick your kit now and it will be set up and waiting for you on Day 1.',
     audience: { jobFamilies: laptopFamilies },
-    unlock: { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
-    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work.',
-    dueOffsetDays: -14,
+    unlock: {
+      type: 'all',
+      rules: [
+        { type: 'checksCleared', checks: ['identity', 'right-to-work'] },
+        { type: 'stepDone', stepId: 'mgr-set-device-spec' },
+      ],
+    },
+    lockedHint: 'Unlocks once we’ve confirmed your ID and right to work, and your manager has set your laptop spec.',
+    dueOffsetDays: laptopChangeDeadline,
     minutes: 2,
     options: laptopOptions,
+    resetBy: ['mgr-set-device-spec'],
+    changeUntilOffsetDays: laptopChangeDeadline,
+    changeClosedHint: 'Your laptop is being prepared. Ask your manager if you need a change.',
   },
   {
     id: 'home-kit-address',
@@ -327,15 +345,32 @@ export const stepCatalogue: StepDefinition[] = [
     minutes: 3,
   },
   {
+    id: 'mgr-set-device-spec',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'choice',
+    icon: 'laptop',
+    title: 'Set their laptop spec',
+    body: 'Decide which spec your joiner gets. They then choose a Surface Pro, Surface Laptop or HP EliteBook G11 in that spec.',
+    audience: { jobFamilies: laptopFamilies },
+    unlock: { type: 'always' },
+    dueOffsetDays: -21,
+    minutes: 1,
+    options: laptopSpecOptions,
+    changeUntilOffsetDays: laptopChangeDeadline,
+    changeClosedHint: 'The laptop is being prepared. Contact the IT service desk if it needs to change.',
+  },
+  {
     id: 'mgr-request-device',
     stage: 'manager-ready',
     owner: 'manager',
     kind: 'task',
     icon: 'laptop',
     title: 'Approve the laptop order',
-    body: 'Your joiner has chosen their kit. Approve it so it arrives before Day 1.',
+    body: 'Your joiner has chosen their laptop in the spec you set. Approve it so it arrives before Day 1.',
     audience: { jobFamilies: laptopFamilies },
     unlock: { type: 'stepDone', stepId: 'choose-kit' },
+    resetBy: ['choose-kit'],
     lockedHint: 'Waiting for your joiner to choose their kit.',
     teamHint: 'Waiting for you to choose your kit.',
     dueOffsetDays: -10,

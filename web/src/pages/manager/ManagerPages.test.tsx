@@ -15,6 +15,42 @@ describe('Manager view', () => {
     expect(screen.getByText('Tom starts in 7 days')).toBeInTheDocument()
   })
 
+  it('lets the manager set the laptop spec, suggesting developer for an engineer', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/amara', { role: 'manager' })
+
+    await user.click(screen.getByText('Set their laptop spec'))
+    const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })
+    expect(within(sheet).getByRole('radio', { name: /Developer/ })).toHaveAttribute('aria-checked', 'true')
+    await user.click(within(sheet).getByRole('radio', { name: /Standard/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Confirm spec' }))
+
+    expect(await screen.findByText('Standard')).toBeInTheDocument()
+  })
+
+  it('lets the manager change the spec before the deadline, but not after', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/priya', { role: 'manager' })
+
+    await user.click(screen.getByText('Set their laptop spec'))
+    const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })
+    await user.click(within(sheet).getByRole('button', { name: 'Change spec' }))
+    expect(within(sheet).getByRole('radio', { name: /Developer/ })).toHaveAttribute('aria-checked', 'true')
+    await user.click(within(sheet).getByRole('radio', { name: /Standard/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Save change' }))
+    expect(await screen.findByText('Standard')).toBeInTheDocument()
+  })
+
+  it('closes spec changes once the laptop is being prepared', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/tom', { role: 'manager' }) // Tom starts 16 Nov, so changes closed after 2 Nov
+
+    await user.click(screen.getByText('Set their laptop spec'))
+    const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })
+    expect(within(sheet).queryByRole('button', { name: 'Change spec' })).not.toBeInTheDocument()
+    expect(within(sheet).getByText(/Changes closed after Mon 2 Nov/)).toBeInTheDocument()
+  })
+
   it('setting goals sends the joiner their welcome pack, with the goals in it', async () => {
     const user = userEvent.setup()
     renderApp('/manager/joiner/priya', { role: 'manager' })

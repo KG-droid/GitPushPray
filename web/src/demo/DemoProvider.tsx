@@ -108,8 +108,16 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       const forOthers = unlocked.filter((s) => s.owner !== by)
       const forSelf = unlocked.filter((s) => s.owner === by)
       const otherName = by === 'joiner' ? 'your team' : target.firstName
+      // A changed choice can undo later steps (e.g. a new laptop needs approving again).
+      const wasDone = new Set(before.steps.filter((s) => s.state === 'done').map((s) => s.id))
+      const reopened = after.steps.filter((s) => wasDone.has(s.id) && s.state !== 'done' && s.id !== stepId)
+      const sentBackTo = [
+        ...new Set(reopened.map((s) => (s.owner === by ? 'you' : s.owner === 'joiner' ? target.firstName : 'your team'))),
+      ].join(' and ')
       setToast(
-        forOthers.length
+        reopened.length
+          ? `Change saved. That’s sent ${reopened.length} thing${reopened.length > 1 ? 's' : ''} back to ${sentBackTo} to redo.`
+          : forOthers.length
           ? `Done! That’s set off ${forOthers.length} more thing${forOthers.length > 1 ? 's' : ''} for ${otherName}.`
           : forSelf.length
             ? `Done! You’ve unlocked “${forSelf[0].title}”.`

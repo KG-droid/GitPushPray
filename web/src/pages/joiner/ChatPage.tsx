@@ -3,7 +3,7 @@ import { Box, Chip, IconButton, InputBase, Paper, Stack, Typography } from '@mui
 import { keyframes } from '@mui/material/styles'
 import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded'
 import ArrowUpwardRounded from '@mui/icons-material/ArrowUpwardRounded'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { PersonAvatar } from '../../components/PersonAvatar'
 import { icebreakers, introMessage, managerIntro } from '../../data/people'
 import { repository } from '../../data/repository'
@@ -17,8 +17,12 @@ export function ChatPage() {
   const navigate = useNavigate()
   const { journey, chats, sendChat, typingId } = useDemo()
   const { persona } = journey
-  const [draft, setDraft] = useState('')
+  // The People tab can open a thread with a question ready to send.
+  const location = useLocation()
+  const initialDraft = (location.state as { draft?: string } | null)?.draft ?? ''
+  const [draft, setDraft] = useState(initialDraft)
   const endRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const isBuddy = personId === persona.buddyId
   const isManager = personId === persona.managerId
@@ -30,20 +34,35 @@ export function ChatPage() {
     endRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' })
   }, [thread.length, typing])
 
+  useEffect(() => {
+    if (!initialDraft) return
+    // Clear the draft from history so going back here doesn't refill the box.
+    navigate(location.pathname, { replace: true, state: null })
+    const input = inputRef.current
+    input?.focus()
+    input?.setSelectionRange(input.value.length, input.value.length)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Only the joiner's own manager and buddy can be messaged.
   if (!person || (!isBuddy && !isManager)) return <Navigate to="/people" replace />
 
   const intro = isBuddy ? introMessage(person.id, persona.firstName, true) : managerIntro(person.id, persona.firstName)
   const joinerHasWritten = thread.some((m) => m.from === 'joiner')
 
-  const submit = (e?: FormEvent, text = draft) => {
+  const submit = (e?: FormEvent) => {
     e?.preventDefault()
-    if (!text.trim()) return
-    sendChat(person.id, text)
+    if (!draft.trim()) return
+    sendChat(person.id, draft)
     setDraft('')
   }
 
+  const fillDraft = (text: string) => {
+    setDraft(text)
+    inputRef.current?.focus()
+  }
+
   return (
+    <>
     <Stack spacing={2} sx={{ pt: 1, pb: 9 }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <IconButton aria-label="Back to your people" edge="start" onClick={() => navigate('/people')}>
@@ -84,53 +103,56 @@ export function ChatPage() {
           </Typography>
           <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
             {icebreakers.map((q) => (
-              <Chip key={q} label={q} variant="outlined" onClick={() => submit(undefined, q)} />
+              <Chip key={q} label={q} variant="outlined" onClick={() => fillDraft(q)} />
             ))}
           </Stack>
         </Box>
       )}
-
-      <Paper
-        component="form"
-        onSubmit={submit}
-        elevation={0}
-        sx={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          mx: 'auto',
-          maxWidth: 440,
-          bottom: 'calc(56px + env(safe-area-inset-bottom))',
-          px: 1.5,
-          py: 1,
-          bgcolor: 'background.default',
-          borderTop: 1,
-          borderColor: 'divider',
-          zIndex: (t) => t.zIndex.appBar - 1,
-        }}
-      >
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-end' }}>
-          <InputBase
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                submit()
-              }
-            }}
-            placeholder={`Message ${person.name.split(' ')[0]}…`}
-            multiline
-            maxRows={4}
-            inputProps={{ 'aria-label': 'Your message', maxLength: 1000 }}
-            sx={{ flex: 1, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 5, px: 2, py: 1 }}
-          />
-          <IconButton type="submit" aria-label="Send message" disabled={!draft.trim()} color="primary" sx={{ bgcolor: 'action.selected' }}>
-            <ArrowUpwardRounded />
-          </IconButton>
-        </Stack>
-      </Paper>
     </Stack>
+
+    {/* Outside the Stack: its child-margin reset would override mx: 'auto' and pin this to the window's left edge. */}
+    <Paper
+      component="form"
+      onSubmit={submit}
+      elevation={0}
+      sx={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        mx: 'auto',
+        maxWidth: 440,
+        bottom: 'calc(56px + env(safe-area-inset-bottom))',
+        px: 1.5,
+        py: 1,
+        bgcolor: 'background.default',
+        borderTop: 1,
+        borderColor: 'divider',
+        zIndex: (t) => t.zIndex.appBar - 1,
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-end' }}>
+        <InputBase
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              submit()
+            }
+          }}
+          placeholder={`Message ${person.name.split(' ')[0]}…`}
+          multiline
+          maxRows={4}
+          inputRef={inputRef}
+          inputProps={{ 'aria-label': 'Your message', maxLength: 1000 }}
+          sx={{ flex: 1, bgcolor: 'background.paper', border: 1, borderColor: 'divider', borderRadius: 5, px: 2, py: 1 }}
+        />
+        <IconButton type="submit" aria-label="Send message" disabled={!draft.trim()} color="primary" sx={{ bgcolor: 'action.selected' }}>
+          <ArrowUpwardRounded />
+        </IconButton>
+      </Stack>
+    </Paper>
+    </>
   )
 }
 
