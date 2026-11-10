@@ -206,8 +206,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
       // Saying hello to your buddy is a journey step: complete it, which also tells the user.
       const isBuddy = withId === persona.buddyId
-      const hello = journey.steps.find((s) => s.id === 'say-hello')
-      if (isBuddy && hello?.state === 'available') completeStep('say-hello')
+      // Messaging someone also counts as meeting them, so the journey doesn't prompt for it again.
+      const stepIds = isBuddy ? ['say-hello', 'meet-buddy'] : withId === persona.managerId ? ['meet-manager'] : []
+      for (const id of stepIds) {
+        if (journey.steps.find((s) => s.id === id)?.state === 'available') completeStep(id)
+      }
 
       setTypingId(withId)
       window.setTimeout(() => {
