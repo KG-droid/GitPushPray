@@ -1,4 +1,5 @@
 import { addDays, daysUntil } from './dates'
+import { NO_HEADSET } from '../data/catalogue'
 import type {
   Audience,
   CheckDefinition,
@@ -118,8 +119,14 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     const done = completions.get(s.id)
     const state: StepState = done ? 'done' : evaluate(s.unlock, ctx) ? 'available' : 'locked'
     const changeUntil = s.changeUntilOffsetDays === undefined ? undefined : addDays(startDate, s.changeUntilOffsetDays)
+    // Don't promise a headset in the delivery copy if the joiner said they don't need one.
+    const body =
+      s.id === 'home-kit-address' && completions.get('choose-headset')?.value === NO_HEADSET
+        ? 'Your laptop and monitor will be couriered to your home before Day 1.'
+        : s.body
     return {
       ...s,
+      body,
       state,
       doneAt: done?.at,
       doneBy: done?.by,

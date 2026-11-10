@@ -53,6 +53,9 @@ const laptopOptions: ChoiceOption[] = [
   { value: 'macbook-pro', label: 'Apple MacBook Pro', detail: 'Faster and with a brighter screen, for heavier workloads' },
 ]
 
+/** Stored as the headset step's value when the joiner doesn't need one. */
+export const NO_HEADSET = 'none'
+
 /** A small, fixed range of extra hardware to pick from after the laptop. Headsets are the first. */
 const headsetOptions: ChoiceOption[] = [
   { value: 'poly-blackwire-8225', label: 'HP Poly Blackwire 8225' },
@@ -60,6 +63,7 @@ const headsetOptions: ChoiceOption[] = [
   { value: 'poly-voyager-free-60-uc', label: 'HP Poly Voyager Free 60 UC' },
   { value: 'poly-voyager-surround-80', label: 'HP Poly Voyager Surround 80' },
   { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
+  { value: NO_HEADSET, label: 'No headset, I have an enterprise headset already', detail: 'We won’t order one for you. You can ask the IT service desk for one later.' },
 ]
 
 const phoneAccessOptions: ChoiceOption[] = [
