@@ -374,6 +374,7 @@ function buildSeedEvents(): JourneyEvent[] {
     ['choose-benefits', 'joiner', '2026-10-20', 'travel-loan'],
     ['learning-picks', 'joiner', '2026-11-06', 'banking-101'],
     ['mgr-request-access', 'manager', '2026-11-06'],
+    ['id-photo', 'joiner', '2026-11-04'],
     ['mgr-request-badge', 'manager', '2026-11-06'],
     ['mgr-plan-week-one', 'manager', '2026-11-06'],
     ['say-hello', 'joiner', '2026-10-29'],
@@ -410,6 +411,7 @@ function buildSeedEvents(): JourneyEvent[] {
     ['mgr-plan-week-one', 'manager', '2026-11-03'],
     ['learning-picks', 'joiner', '2026-11-03', 'banking-101'],
     ['say-hello', 'joiner', '2026-10-21'],
+    ['id-photo', 'joiner', '2026-11-02'],
   ] as const) {
     done('tom', at, stepId, by, value)
   }

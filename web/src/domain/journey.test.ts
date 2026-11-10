@@ -18,6 +18,21 @@ function journey(id: string, today: string, extra: Omit<JourneyEvent, 'id' | 'pe
 const step = (j: ReturnType<typeof journey>, id: string) => j.steps.find((s) => s.id === id)
 
 describe('ID badge photo', () => {
+  it('keeps the manager’s badge request locked until the joiner has submitted their photo', () => {
+    const events = seedEvents.filter((e) => !(e.personaId === 'tom' && (e.payload as { stepId?: string } | undefined)?.stepId === 'id-photo'))
+    const build = (extra: Omit<JourneyEvent, 'id' | 'personaId'>[] = []) =>
+      buildJourney({
+        persona: persona('tom'),
+        events: [...events, ...extra.map((e, i) => ({ ...e, id: `x-${i}`, personaId: 'tom' }))],
+        today: '2026-11-09',
+        steps: stepCatalogue,
+        checks: checkCatalogue,
+      })
+    expect(step(build(), 'mgr-request-badge')?.state).toBe('locked')
+    const withPhoto = build([{ type: 'step_completed', at: '2026-11-09T09:00:00Z', payload: { stepId: 'id-photo' } }])
+    expect(step(withPhoto, 'mgr-request-badge')?.state).toBe('available')
+  })
+
   it('opens two weeks before the start date and becomes a next step', () => {
     // Priya starts 7 Dec, so the photo opens on 23 Nov.
     expect(step(journey('priya', '2026-11-22'), 'id-photo')?.state).toBe('locked')

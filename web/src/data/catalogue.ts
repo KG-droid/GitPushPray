@@ -588,8 +588,14 @@ export const stepCatalogue: StepDefinition[] = [
     title: 'Request an ID badge',
     body: 'So they can get into the building on Day 1.',
     audience: { workPatterns: ['hybrid', 'shift', 'branch'] },
-    unlock: { type: 'checksCleared', checks: 'all' },
-    lockedHint: 'Badges can only be issued once all checks are cleared.',
+    unlock: {
+      type: 'all',
+      rules: [
+        { type: 'checksCleared', checks: 'all' },
+        { type: 'stepDone', stepId: 'id-photo' },
+      ],
+    },
+    lockedHint: 'Badges can only be requested once all checks are cleared and the joiner has submitted their ID photo.',
     dueOffsetDays: -7,
     minutes: 1,
   },
