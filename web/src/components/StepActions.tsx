@@ -23,7 +23,10 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
   const navigate = useNavigate()
   const [choice, setChoice] = useState<string | undefined>()
   const [changing, setChanging] = useState(false)
-  const laptopSpec = step.id === 'choose-kit' ? laptopOrder(journey).spec : undefined
+  const order = step.id === 'choose-kit' ? laptopOrder(journey) : undefined
+  const laptopSpec = order?.spec
+  // The manager can narrow the laptops on offer and recommend one.
+  const options = order?.models ? step.options?.filter((o) => order.models?.includes(o.value)) : step.options
   const isChange = changing && step.canChange
   const picks = parsePicks(choice)
 
@@ -122,14 +125,15 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {laptopSpec.detail} Every model below comes in this spec.
+            {order?.recommended && ` Your manager recommends the ${step.options?.find((o) => o.value === order.recommended)?.label}.`}
           </Typography>
         </Box>
       )}
-      {step.kind === 'choice' && step.options && (
+      {step.kind === 'choice' && options && (
         <Stack spacing={1} sx={{ mb: 2 }} role={step.multiple ? 'group' : 'radiogroup'} aria-label={step.title}>
-          {step.options.map((o, i) => {
+          {options.map((o, i) => {
             const selected = step.multiple ? picks.includes(o.value) : choice === o.value
-            const showGroup = o.group && o.group !== step.options?.[i - 1]?.group
+            const showGroup = o.group && o.group !== options[i - 1]?.group
             return (
               <Fragment key={o.value}>
                 {showGroup && (
@@ -150,8 +154,9 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
                         <Radio checked={selected} size="small" tabIndex={-1} />
                       )}
                       <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        <Typography component="div" variant="body2" sx={{ fontWeight: 600 }}>
                           {o.label}
+                          {order?.recommended === o.value && <Chip size="small" color="primary" label="Recommended" sx={{ ml: 1, height: 20 }} />}
                         </Typography>
                         {o.detail && (
                           <Typography variant="caption" color="text.secondary">

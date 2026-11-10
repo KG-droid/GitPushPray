@@ -29,6 +29,25 @@ describe('Manager view', () => {
     expect(await screen.findByText('Standard')).toBeInTheDocument()
   })
 
+  it('lets the manager narrow the laptops on offer and recommend one', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/amara', { role: 'manager' })
+
+    await user.click(screen.getByText('Set their laptop spec'))
+    const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })
+    const offered = within(sheet).getByRole('group', { name: 'Laptops they can choose' })
+    expect(within(offered).getAllByRole('checkbox', { name: /./ })).toHaveLength(4)
+    await user.click(within(offered).getByRole('checkbox', { name: /Surface Pro/ }))
+    await user.click(within(offered).getByRole('checkbox', { name: /Surface Laptop/ }))
+
+    const recommended = within(sheet).getByRole('radiogroup', { name: 'Recommended laptop' })
+    expect(within(recommended).queryByRole('radio', { name: /Surface Pro/ })).not.toBeInTheDocument()
+    await user.click(within(recommended).getByRole('radio', { name: /Apple MacBook Pro/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Confirm spec' }))
+
+    expect(await screen.findByText(/set off 1 more thing for Amara/)).toBeInTheDocument()
+  })
+
   it('lets the manager change the spec before the deadline, but not after', async () => {
     const user = userEvent.setup()
     renderApp('/manager/joiner/priya', { role: 'manager' })

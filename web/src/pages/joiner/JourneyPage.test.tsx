@@ -1,6 +1,7 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { repository } from '../../data/repository'
 import { renderApp } from '../../test/renderApp'
 
 describe('Journey tab', () => {
@@ -31,6 +32,25 @@ describe('Journey tab', () => {
 
     expect(await screen.findByText(/set off 1 more thing for your team/)).toBeInTheDocument()
     expect(screen.getByText('Surface Laptop')).toBeInTheDocument()
+  })
+
+  it('shows only the laptops the manager offered, with their recommendation', async () => {
+    const user = userEvent.setup()
+    renderApp('/journey')
+    act(() => {
+      const at = '2026-11-09T12:00:00Z'
+      repository.addEvent({ personaId: 'priya', type: 'step_completed', at, payload: { stepId: 'accessibility-needs', value: 'no' } })
+      repository.addEvent({ personaId: 'priya', type: 'step_completed', at, payload: { stepId: 'mgr-set-device-spec', value: 'developer|hp-elitebook-g11,macbook-pro|macbook-pro', by: 'manager' } })
+    })
+
+    await user.click(screen.getByText('Choose your laptop'))
+    const sheet = await screen.findByRole('dialog', { name: 'Choose your laptop' })
+    expect(within(sheet).getAllByRole('radio', { name: /./ }).map((r) => r.textContent)).toEqual([
+      expect.stringContaining('HP EliteBook G11'),
+      expect.stringContaining('Apple MacBook Pro'),
+    ])
+    expect(within(sheet).getByRole('radio', { name: /Apple MacBook Pro/ })).toHaveTextContent('Recommended')
+    expect(within(sheet).getByText(/Your manager recommends the Apple MacBook Pro/)).toBeInTheDocument()
   })
 
   it('lets the joiner change their laptop before the deadline, sending it back for approval', async () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { NO_HEADSET, checkCatalogue, stepCatalogue } from '../data/catalogue'
 import { seedEvents, seedPersonas } from '../data/seed'
 import { buildJourney } from './journey'
-import { laptopLabel, laptopOrder, suggestedLaptopSpec } from './laptop'
+import { encodeLaptopSpec, laptopLabel, laptopOrder, parseLaptopSpec, suggestedLaptopSpec } from './laptop'
 import type { JourneyEvent } from './types'
 
 function journey(id: string, today: string, events = seedEvents) {
@@ -110,6 +110,21 @@ describe('laptop spec and model', () => {
     const again = journey('margaret', '2026-11-10', [...seedEvents, change, repick])
     expect(laptopLabel(laptopOrder(again))).toBe('Surface Pro, Developer spec')
     expect(again.steps.find((s) => s.id === 'mgr-request-device')?.state).toBe('available')
+  })
+
+  it('stores the models on offer and the recommended one alongside the spec', () => {
+    expect(parseLaptopSpec('developer')).toEqual({ spec: 'developer', models: undefined, recommended: undefined })
+    const value = encodeLaptopSpec({ spec: 'developer', models: ['hp-elitebook-g11', 'macbook-pro'], recommended: 'macbook-pro' })
+    expect(value).toBe('developer|hp-elitebook-g11,macbook-pro|macbook-pro')
+    expect(parseLaptopSpec(value)).toEqual({ spec: 'developer', models: ['hp-elitebook-g11', 'macbook-pro'], recommended: 'macbook-pro' })
+    expect(encodeLaptopSpec({ spec: 'standard' })).toBe('standard')
+    expect(encodeLaptopSpec({ spec: 'standard', recommended: 'surface-pro' })).toBe('standard||surface-pro')
+  })
+
+  it('reads the manager’s shortlist and recommendation, and still finds the spec', () => {
+    const set = completed('priya', '2026-11-09', 'mgr-set-device-spec', 'developer|hp-elitebook-g11,macbook-pro|macbook-pro')
+    const order = laptopOrder(journey('priya', '2026-11-09', [...seedEvents, set]))
+    expect(order).toMatchObject({ spec: { value: 'developer' }, models: ['hp-elitebook-g11', 'macbook-pro'], recommended: 'macbook-pro' })
   })
 
   it('suggests the developer spec for engineering and data roles only', () => {

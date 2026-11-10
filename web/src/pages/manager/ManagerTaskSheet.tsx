@@ -13,7 +13,7 @@ import { useDemo } from '../../demo/useDemo'
 import { formatShortDate } from '../../domain/dates'
 import type { JourneyView, StepView } from '../../domain/journey'
 import { joinPicks, NO_EQUIPMENT, parsePicks, togglePick } from '../../domain/equipment'
-import { laptopLabel, laptopOrder, suggestedLaptopSpec } from '../../domain/laptop'
+import { encodeLaptopSpec, laptopLabel, laptopOrder, parseLaptopSpec, suggestedLaptopSpec } from '../../domain/laptop'
 import { weekOneItems } from '../../data/weekOne'
 import { joinPlan, plannedWeekOne, recommendedIds, WEEK_ONE_STEP, workingDay } from '../../domain/weekOne'
 
@@ -124,7 +124,7 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
       <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
         <CheckCircleRounded fontSize="small" />
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {planned ? `${planned.length} session${planned.length === 1 ? '' : 's'} planned` : step.options?.find((o) => o.value === step.value)?.label ?? 'Done'}
+          {planned ? `${planned.length} session${planned.length === 1 ? '' : 's'} planned` : step.options?.find((o) => o.value === (step.id === 'mgr-set-device-spec' ? parseLaptopSpec(step.value)?.spec : step.value))?.label ?? 'Done'}
           {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
         </Typography>
       </Stack>
@@ -287,9 +287,19 @@ function LaptopSpecForm({
   const { completeStep } = useDemo()
   const step = journey.steps.find((s) => s.id === 'mgr-set-device-spec')
   const suggested = suggestedLaptopSpec(journey.persona.jobFamily)
-  const [spec, setSpec] = useState<string>(current ?? suggested)
+  const currentChoice = parseLaptopSpec(current)
+  const allModels = journey.steps.find((s) => s.id === 'choose-kit')?.options ?? []
+  const [spec, setSpec] = useState<string>(currentChoice?.spec ?? suggested)
+  const [offered, setOffered] = useState<string[]>(currentChoice?.models ?? allModels.map((o) => o.value))
+  const [recommended, setRecommended] = useState<string | undefined>(currentChoice?.recommended)
   const name = journey.persona.firstName
   const model = laptopOrder(journey).model
+  const value = encodeLaptopSpec({
+    spec,
+    models: offered.length === allModels.length ? undefined : offered,
+    recommended: recommended && offered.includes(recommended) ? recommended : undefined,
+  })
+  const offeredOptions = allModels.filter((o) => offered.includes(o.value))
 
   return (
     <Stack spacing={1.5}>
@@ -321,17 +331,74 @@ function LaptopSpecForm({
           )
         })}
       </Stack>
+
+      {allModels.length > 0 && (
+        <>
+          <Stack spacing={1} role="group" aria-label="Laptops they can choose">
+            <Typography variant="overline" color="text.secondary">
+              Laptops {name} can choose from
+            </Typography>
+            {allModels.map((o) => {
+              const selected = offered.includes(o.value)
+              return (
+                <Card key={o.value} variant="outlined" sx={{ borderColor: selected ? 'primary.main' : undefined, borderWidth: selected ? 2 : 1 }}>
+                  <CardActionArea
+                    onClick={() => setOffered((cur) => (cur.includes(o.value) ? (cur.length > 1 ? cur.filter((v) => v !== o.value) : cur) : [...cur, o.value]))}
+                    role="checkbox"
+                    aria-checked={selected}
+                  >
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.25 }}>
+                      <Checkbox checked={selected} size="small" tabIndex={-1} />
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {o.label}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {o.detail}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </CardActionArea>
+                </Card>
+              )
+            })}
+          </Stack>
+          {offeredOptions.length > 1 && (
+            <Stack spacing={1} role="radiogroup" aria-label="Recommended laptop">
+              <Typography variant="overline" color="text.secondary">
+                Recommended laptop
+              </Typography>
+              {[{ value: '', label: 'No recommendation', detail: undefined as string | undefined }, ...offeredOptions].map((o) => {
+                const selected = (recommended ?? '') === o.value
+                return (
+                  <Card key={o.value || 'none'} variant="outlined" sx={{ borderColor: selected ? 'primary.main' : undefined, borderWidth: selected ? 2 : 1 }}>
+                    <CardActionArea onClick={() => setRecommended(o.value || undefined)} role="radio" aria-checked={selected}>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.25 }}>
+                        <Radio checked={selected} size="small" tabIndex={-1} />
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {o.label}
+                        </Typography>
+                      </Stack>
+                    </CardActionArea>
+                  </Card>
+                )
+              })}
+            </Stack>
+          )}
+        </>
+      )}
+
       <Typography variant="caption" color="text.secondary">
         {current && model
-          ? `${name} has chosen the ${model.label}. Changing the spec clears that choice so they can pick again, and the order will need your approval again.`
-          : `${name} will then choose a Surface, HP EliteBook or Apple MacBook in this spec.`}
+          ? `${name} has chosen the ${model.label}. Saving a change clears that choice so they can pick again, and the order will need your approval again.`
+          : `${name} will then choose from the laptops above, with your recommendation highlighted.`}
       </Typography>
       <Stack direction="row" spacing={1}>
         <Button
           variant="contained"
-          disabled={spec === current}
+          disabled={value === current}
           onClick={() => {
-            completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value: spec })
+            completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value })
             onDone()
           }}
         >
@@ -362,7 +429,7 @@ function AccessibilityConversationForm({ journey, onDone }: { journey: JourneyVi
   const specStep = stepOf('mgr-set-device-spec')
   const kitStep = stepOf('choose-kit')
   const headsetStep = stepOf('choose-headset')
-  const [spec, setSpec] = useState<string>(specStep?.value ?? suggestedLaptopSpec(journey.persona.jobFamily))
+  const [spec, setSpec] = useState<string>(parseLaptopSpec(specStep?.value)?.spec ?? suggestedLaptopSpec(journey.persona.jobFamily))
   const [laptop, setLaptop] = useState<string | undefined>(kitStep?.value)
   const [headset, setHeadset] = useState<string | undefined>(headsetStep?.value)
   const equipmentStep = stepOf('choose-equipment')
