@@ -68,7 +68,7 @@ All names, people and policies are fictional.
 
 ## 4. Manager view (the hiring manager's companion)
 - **M1 My joiners:** a list of the manager's joiners with stage, status (On track / Waiting on checks / Needs action) and days to start.
-- **M2 Joiner detail – what's left:** a checklist of checks, buddy, device, access, ID badge and 3-month goals. Completing an item raises an event. **Setting goals sends the welcome pack**, and the joiner app updates live (the "chain reactions" prompt).
+- **M2 Joiner detail – what's left:** a checklist of checks, buddy, device, access, ID badge and 3-month goals. Completing an item raises an event. **Sending the welcome pack is the manager's first step**: where the joiner gets a laptop, the manager first chooses which ones they're allowed. The pack lands in the joiner app live (the "chain reactions" prompt), and goals and the first-week plan are added to it as they're set.
 - **M3 Just-in-time nudges:** cards based on the Google research ("Priya starts Monday: here are 5 things that matter most"), plus cover handling: "Going on leave? Hand over to a deputy."
 - **M4 Day-30 signal:** the joiner's pulse trend and buddy meeting count, with suggested actions if they're quietly struggling. The manager sees signals, not private chat content.
 
@@ -98,7 +98,7 @@ Simulated for the demo: owners and lead times are illustrative, and status moves
 1. Margaret receives her offer → warm handover → Today card.
 2. Vetting tracker: the regulatory reference is slow and the app explains why honestly → **Slip date** → the journey reshapes itself and the message is reassuring.
 3. Switch to Priya and then Rhys: **different packs** for the same day (laptop choice vs shift pattern).
-4. Manager view: Priya's manager sets her goals → **the welcome pack lands** in Priya's app.
+4. Manager view: Daniel chooses the laptops Amara is allowed and sends her welcome pack → **the welcome pack lands** in Amara's app. He then sets Priya's goals, and they appear in the pack she already has.
 5. Ask tab: "Can I work from home in my first week?" → a grounded answer with a source → "Can you tell me my manager's salary?" → declines and offers a person.
 6. Buddy view: a step-in alert and the meetup tracker.
 7. Day 30: pulse → celebration → the manager sees the trend.

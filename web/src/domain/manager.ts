@@ -5,6 +5,7 @@ import { managerEquipmentSummary, pickedLabels, pickedOptions, NO_EQUIPMENT } fr
 import type { JourneyView, StepView } from './journey'
 import { laptopLabel, laptopOrder } from './laptop'
 import type { JourneyEvent, PulsePayload } from './types'
+import { SEND_WELCOME_PACK_STEP, welcomePackStatus, type WelcomePackStatus } from './welcomePack'
 
 /**
  * What a hiring manager sees about a joiner. Deliberately progress-only:
@@ -16,6 +17,8 @@ export type JoinerStatus = 'needs-you' | 'waiting-on-checks' | 'on-track' | 'sta
 export interface ManagerJoinerView {
   journey: JourneyView
   status: JoinerStatus
+  /** Sending the welcome pack is where the manager starts with a new joiner */
+  welcomePack: WelcomePackStatus
   /** The manager's own tasks for this joiner, soonest first */
   tasks: StepView[]
   tasksDone: number
@@ -40,7 +43,7 @@ export interface ManagerJoinerView {
 export function managerView(journey: JourneyView, events: JourneyEvent[] = []): ManagerJoinerView {
   const tasks = journey.steps
     .filter((s) => s.owner === 'manager')
-    .sort((a, b) => order(a) - order(b) || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'))
+    .sort((a, b) => order(a) - order(b) || first(a) - first(b) || (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'))
   const urgent = tasks.filter((t) => t.state === 'available' && t.dueDate && daysUntil(t.dueDate, journey.today) <= 7)
   const joinerSteps = journey.steps.filter((s) => s.owner === 'joiner' && s.kind !== 'content' && !s.optional)
   const kitLabel = laptopLabel(laptopOrder(journey))
@@ -61,6 +64,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
   return {
     journey,
     status,
+    welcomePack: welcomePackStatus(journey),
     tasks,
     tasksDone: tasks.filter((t) => t.state === 'done').length,
     urgent,
@@ -103,6 +107,11 @@ function order(s: StepView): number {
   return s.state === 'available' ? 0 : s.state === 'locked' ? 1 : 2
 }
 
+/** The welcome pack is where the manager starts, whatever else is due. */
+function first(s: StepView): number {
+  return s.id === SEND_WELCOME_PACK_STEP ? 0 : 1
+}
+
 export function pulseTrend(events: JourneyEvent[], journey: JourneyView): ManagerJoinerView['pulse'] {
   const pulses = events
     .filter((e) => e.personaId === journey.persona.id && e.type === 'pulse_submitted' && e.at.slice(0, 10) <= journey.today)
@@ -122,6 +131,7 @@ export function pulseTrend(events: JourneyEvent[], journey: JourneyView): Manage
 
 export type Nudge =
   | { kind: 'asked-for-you'; personaId: string; name: string; summary: string }
+  | { kind: 'welcome-pack'; personaId: string; name: string; needsLaptops: boolean }
   | { kind: 'first-week'; personaId: string; name: string; startDate: string; daysToStart: number }
   | { kind: 'task-due'; personaId: string; name: string; task: StepView; overdue: boolean }
   /** Everyone who has gone quiet, in one nudge, quietest first. Opens the first of them. */
@@ -139,7 +149,9 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
     if (v.startDateMoved) nudges.push({ kind: 'date-moved', personaId: persona.id, name, to: v.startDateMoved.to })
     // Google's research: a just-in-time nudge in the days before Day 1 makes the biggest difference.
     if (daysToStart > 0 && daysToStart <= 7) nudges.push({ kind: 'first-week', personaId: persona.id, name, startDate, daysToStart })
-    for (const task of v.urgent.slice(0, 2)) {
+    const packToSend = !v.welcomePack.sent && v.welcomePack.step?.state === 'available'
+    if (packToSend) nudges.push({ kind: 'welcome-pack', personaId: persona.id, name, needsLaptops: v.welcomePack.needsLaptops })
+    for (const task of v.urgent.filter((t) => t.id !== SEND_WELCOME_PACK_STEP).slice(0, 2)) {
       nudges.push({ kind: 'task-due', personaId: persona.id, name, task, overdue: !!task.dueDate && task.dueDate < today })
     }
   }
@@ -147,7 +159,7 @@ export function managerNudges(views: ManagerJoinerView[]): Nudge[] {
     .flatMap((v) => (v.quiet?.status === 'quiet' ? [{ id: v.journey.persona.id, name: v.journey.persona.firstName, days: v.quiet.quietDays }] : []))
     .sort((a, b) => b.days - a.days)
   if (quiet.length) nudges.push({ kind: 'gone-quiet', personaId: quiet[0].id, names: quiet.map((q) => q.name), quietDays: quiet[0].days })
-  const rank = { 'asked-for-you': 0, 'date-moved': 1, 'gone-quiet': 2, 'first-week': 3, 'task-due': 4 }
+  const rank = { 'asked-for-you': 0, 'date-moved': 1, 'gone-quiet': 2, 'welcome-pack': 3, 'first-week': 4, 'task-due': 5 }
   return nudges.sort((a, b) => rank[a.kind] - rank[b.kind])
 }
 

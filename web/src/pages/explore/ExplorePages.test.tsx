@@ -77,7 +77,7 @@ describe('Explore tab', () => {
     renderApp('/manager/joiner/priya', { role: 'manager' })
     await user.click(screen.getByText('Set first 3-month goals'))
     const sheet = await screen.findByRole('dialog', { name: 'Set first 3-month goals' })
-    await user.click(within(sheet).getByRole('button', { name: /Set goals and send welcome pack/ }))
+    await user.click(within(sheet).getByRole('button', { name: /Add goals to their welcome pack/ }))
 
     // Same session, joiner side: the goals appear in the cascade.
     await user.click(await screen.findByRole('button', { name: /Manager view, Daniel/ }))

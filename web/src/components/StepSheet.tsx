@@ -6,6 +6,7 @@ import { GOAL_SEPARATOR } from '../data/goals'
 import { repository } from '../data/repository'
 import { formatShortDate } from '../domain/dates'
 import { plannedWeekOne } from '../domain/weekOne'
+import { packLaptops } from '../domain/welcomePack'
 import { IconTile } from './IconTile'
 import { GlossaryText } from './GlossaryText'
 import { StepActions } from './StepActions'
@@ -18,7 +19,8 @@ export function StepSheet({ stepId, onClose }: { stepId: string | null; onClose:
   const { journey } = useDemo()
   const step = journey.steps.find((s) => s.id === stepId)
   const stage = STAGES.find((s) => s.id === step?.stage)
-  // The welcome pack carries the goals the manager set (a chain reaction from the manager view).
+  // The welcome pack carries what the manager chose for them: laptop options first, then goals and the first week as they're set.
+  const laptops = packLaptops(journey)
   const goalsValue = journey.steps.find((s) => s.id === 'mgr-set-goals')?.value
   const goals = goalsValue ? goalsValue.split(GOAL_SEPARATOR).filter(Boolean) : []
   const weekOne = plannedWeekOne(journey)
@@ -51,6 +53,24 @@ export function StepSheet({ stepId, onClose }: { stepId: string | null; onClose:
           <Typography color="text.secondary" sx={{ mb: 3 }}>
             <GlossaryText text={step.body} />
           </Typography>
+          {step.id === 'welcome-pack' && step.state !== 'locked' && laptops && (
+            <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 2, mb: 3 }}>
+              <Typography variant="overline" color="text.secondary">
+                Laptops you can choose from, picked by {managerName}
+              </Typography>
+              <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+                {laptops.options.map((o) => (
+                  <Typography key={o.value} component="li" variant="body2" sx={{ mb: 0.5 }}>
+                    {o.label}
+                    {laptops.recommended?.value === o.value ? ` (${managerName} recommends this one)` : ''}
+                  </Typography>
+                ))}
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Make your choice in “Choose your laptop”.
+              </Typography>
+            </Box>
+          )}
           {step.id === 'welcome-pack' && goals.length > 0 && step.state !== 'locked' && (
             <Box sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 2, mb: 3 }}>
               <Typography variant="overline" color="text.secondary">

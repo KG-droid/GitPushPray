@@ -16,8 +16,9 @@ import { joinPicks, NO_EQUIPMENT, parsePicks, togglePick } from '../../domain/eq
 import { encodeLaptopSpec, laptopLabel, laptopOrder, parseLaptopSpec, suggestedLaptopSpec } from '../../domain/laptop'
 import { weekOneItems } from '../../data/weekOne'
 import { joinPlan, plannedWeekOne, recommendedIds, WEEK_ONE_STEP, workingDay } from '../../domain/weekOne'
+import { packLaptops, SEND_WELCOME_PACK_STEP, welcomePackStatus } from '../../domain/welcomePack'
 
-/** Bottom sheet for one of the manager's tasks. Setting goals and assigning a buddy get their own forms. */
+/** Bottom sheet for one of the manager's tasks. Sending the welcome pack, setting goals and assigning a buddy get their own forms. */
 export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: JourneyView; stepId: string | null; onClose: () => void }) {
   const step = journey.steps.find((s) => s.id === stepId)
 
@@ -57,6 +58,8 @@ export function ManagerTaskSheet({ journey, stepId, onClose }: { journey: Journe
             </Stack>
           ) : step.state === 'done' ? (
             <DoneState key={step.id} journey={journey} step={step} onClose={onClose} />
+          ) : step.id === SEND_WELCOME_PACK_STEP ? (
+            <WelcomePackForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-set-goals' ? (
             <GoalsForm journey={journey} onDone={onClose} />
           ) : step.id === 'mgr-assign-buddy' ? (
@@ -124,7 +127,7 @@ function DoneState({ journey, step, onClose }: { journey: JourneyView; step: Ste
       <Stack direction="row" spacing={1} sx={{ color: 'primary.main', alignItems: 'center' }}>
         <CheckCircleRounded fontSize="small" />
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {planned ? `${planned.length} session${planned.length === 1 ? '' : 's'} planned` : step.options?.find((o) => o.value === (step.id === 'mgr-set-device-spec' ? parseLaptopSpec(step.value)?.spec : step.value))?.label ?? 'Done'}
+          {step.id === SEND_WELCOME_PACK_STEP ? 'Welcome pack sent' : planned ? `${planned.length} session${planned.length === 1 ? '' : 's'} planned` : step.options?.find((o) => o.value === (step.id === 'mgr-set-device-spec' ? parseLaptopSpec(step.value)?.spec : step.value))?.label ?? 'Done'}
           {step.doneAt ? ` · ${formatShortDate(step.doneAt)}` : ''}
         </Typography>
       </Stack>
@@ -179,7 +182,7 @@ function GoalsForm({ journey, onDone }: { journey: JourneyView; onDone: () => vo
           onDone()
         }}
       >
-        Set goals and send welcome pack
+        Add goals to their welcome pack
       </Button>
     </Stack>
   )
@@ -272,15 +275,73 @@ function BuddyForm({ journey, onDone }: { journey: JourneyView; onDone: () => vo
   )
 }
 
-/** Sets the laptop spec, or changes it when `current` is given. */
+/**
+ * The manager sends the welcome pack. If the joiner gets a laptop, the manager first chooses which ones
+ * they can pick from: those choices go out in the pack, so it can't be sent without them.
+ */
+function WelcomePackForm({ journey, onDone }: { journey: JourneyView; onDone: () => void }) {
+  const { completeStep } = useDemo()
+  const name = journey.persona.firstName
+  const laptops = packLaptops(journey)
+
+  if (welcomePackStatus(journey).needsLaptops) {
+    return (
+      <Stack spacing={1.5}>
+        <Alert severity="info" variant="outlined">
+          First choose which laptops {name} is allowed. They go out in the welcome pack, so it can’t be sent without them.
+        </Alert>
+        <LaptopSpecForm journey={journey} sendPack onDone={onDone} />
+      </Stack>
+    )
+  }
+
+  return (
+    <Stack spacing={1.5}>
+      {laptops && (
+        <Box role="region" aria-label="Laptops in the pack" sx={{ bgcolor: 'action.hover', borderRadius: 3, p: 1.5 }}>
+          <Typography variant="overline" color="text.secondary">
+            Laptops {name} can choose from · {laptops.spec.label} spec
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
+            {laptops.options.map((o) => (
+              <Typography key={o.value} component="li" variant="body2">
+                {o.label}
+                {laptops.recommended?.value === o.value ? ' (your recommendation)' : ''}
+              </Typography>
+            ))}
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            To change these, use “Set their laptop spec”.
+          </Typography>
+        </Box>
+      )}
+      <Typography variant="body2" color="text.secondary">
+        The pack lands in {name}’s app straight away. Your goals and first-week plan are added to it as you set them.
+      </Typography>
+      <Button
+        variant="contained"
+        onClick={() => {
+          completeStep(SEND_WELCOME_PACK_STEP, { by: 'manager', personaId: journey.persona.id })
+          onDone()
+        }}
+      >
+        Send welcome pack
+      </Button>
+    </Stack>
+  )
+}
+
+/** Sets the laptop spec, or changes it when `current` is given. With `sendPack`, saving also sends the welcome pack. */
 function LaptopSpecForm({
   journey,
   current,
+  sendPack,
   onCancel,
   onDone,
 }: {
   journey: JourneyView
   current?: string
+  sendPack?: boolean
   onCancel?: () => void
   onDone: () => void
 }) {
@@ -391,7 +452,9 @@ function LaptopSpecForm({
       <Typography variant="caption" color="text.secondary">
         {current && model
           ? `${name} has chosen the ${model.label}. Saving a change clears that choice so they can pick again, and the order will need your approval again.`
-          : `${name} will then choose from the laptops above, with your recommendation highlighted.`}
+          : sendPack
+            ? `The welcome pack tells ${name} which laptops they can choose from, with your recommendation highlighted.`
+            : `${name} will then choose from the laptops above, with your recommendation highlighted.`}
       </Typography>
       <Stack direction="row" spacing={1}>
         <Button
@@ -399,10 +462,11 @@ function LaptopSpecForm({
           disabled={value === current}
           onClick={() => {
             completeStep('mgr-set-device-spec', { by: 'manager', personaId: journey.persona.id, value })
+            if (sendPack) completeStep(SEND_WELCOME_PACK_STEP, { by: 'manager', personaId: journey.persona.id })
             onDone()
           }}
         >
-          {current ? 'Save change' : 'Confirm spec'}
+          {sendPack ? 'Send welcome pack' : current ? 'Save change' : 'Confirm spec'}
         </Button>
         {onCancel && <Button onClick={onCancel}>Cancel</Button>}
       </Stack>

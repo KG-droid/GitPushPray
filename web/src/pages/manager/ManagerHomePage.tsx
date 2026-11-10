@@ -1,16 +1,20 @@
-import { Box, Card, CardActionArea, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
+import { Box, Button, Card, CardActionArea, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material'
 import ChevronRightRounded from '@mui/icons-material/ChevronRightRounded'
 import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
 import ForumRounded from '@mui/icons-material/ForumRounded'
 import EventRepeatRounded from '@mui/icons-material/EventRepeatRounded'
 import RocketLaunchRounded from '@mui/icons-material/RocketLaunchRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
+import RedeemRounded from '@mui/icons-material/RedeemRounded'
 import { useNavigate } from 'react-router-dom'
 import { IconTile } from '../../components/IconTile'
 import { cardGridSx } from '../../components/layout'
 import { PersonAvatar } from '../../components/PersonAvatar'
 import { countdownLabel, formatShortDate } from '../../domain/dates'
 import type { Nudge } from '../../domain/manager'
+import { SEND_WELCOME_PACK_STEP } from '../../domain/welcomePack'
+import { ManagerTaskSheet } from './ManagerTaskSheet'
 import { StatusChip } from './StatusChip'
 import { useManager } from './useManager'
 
@@ -19,6 +23,9 @@ export function ManagerHomePage() {
   const { manager, views, nudges } = useManager()
   const navigate = useNavigate()
   const needYou = views.reduce((n, v) => n + v.urgent.length, 0)
+  // Sending a welcome pack starts here, without opening the joiner first.
+  const [sendingTo, setSendingTo] = useState<string | null>(null)
+  const sending = views.find((v) => v.journey.persona.id === sendingTo)
 
   return (
     <Stack spacing={2.5} sx={{ pt: 1 }}>
@@ -42,7 +49,7 @@ export function ManagerHomePage() {
           </Typography>
           <Box sx={cardGridSx}>
             {nudges.slice(0, 4).map((n, i) => (
-              <NudgeCard key={i} nudge={n} highlight={i === 0} onOpen={() => navigate(`/manager/joiner/${n.personaId}`)} />
+              <NudgeCard key={i} nudge={n} highlight={i === 0} onOpen={() => (n.kind === 'welcome-pack' ? setSendingTo(n.personaId) : navigate(`/manager/joiner/${n.personaId}`))} />
             ))}
           </Box>
         </Box>
@@ -89,11 +96,23 @@ export function ManagerHomePage() {
                     </Stack>
                   </CardContent>
                 </CardActionArea>
+                {!v.welcomePack.sent && v.welcomePack.step?.state === 'available' && (
+                  <Box sx={{ px: 2, pb: 2 }}>
+                    <Button variant="contained" fullWidth startIcon={<RedeemRounded />} onClick={() => setSendingTo(p.id)}>
+                      Send welcome pack
+                    </Button>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75, textAlign: 'center' }}>
+                      {v.welcomePack.needsLaptops ? `You’ll choose which laptops ${p.firstName} can pick from first.` : `The first thing ${p.firstName} gets from you.`}
+                    </Typography>
+                  </Box>
+                )}
               </Card>
             )
           })}
         </Box>
       </Box>
+
+      {sending && <ManagerTaskSheet journey={sending.journey} stepId={sendingTo ? SEND_WELCOME_PACK_STEP : null} onClose={() => setSendingTo(null)} />}
     </Stack>
   )
 }
@@ -112,6 +131,12 @@ function NudgeCard({ nudge, onOpen, highlight }: { nudge: Nudge; onOpen: () => v
             nudge.names.length === 1
               ? `No activity for ${nudge.quietDays} days. A quick hello makes a difference.`
               : `No activity for a week or more. A quick hello to each makes a difference.`,
+        }
+      : nudge.kind === 'welcome-pack'
+      ? {
+          icon: <RedeemRounded color="secondary" />,
+          title: `Send ${nudge.name}’s welcome pack`,
+          body: nudge.needsLaptops ? 'Choose which laptops they can pick from, then send it. Takes 2 minutes.' : 'It’s the first thing they get from you. Takes a minute.',
         }
       : nudge.kind === 'first-week'
       ? {

@@ -83,11 +83,11 @@ describe('unlocking ("earned, not withheld")', () => {
     expect(step(journey('priya', '2026-11-20'), 'pay-and-pension')?.state).toBe('available')
   })
 
-  it('unlocks the welcome pack when the manager sets goals (chain reaction)', () => {
-    expect(step(journey('priya', '2026-11-09'), 'welcome-pack')?.state).toBe('locked')
+  it('unlocks the welcome pack when the manager sends it (chain reaction)', () => {
+    expect(step(journey('amara', '2026-11-09'), 'welcome-pack')?.state).toBe('locked')
 
-    const after = journey('priya', '2026-11-09', [
-      { type: 'step_completed', at: '2026-11-09T11:00:00Z', payload: { stepId: 'mgr-set-goals', by: 'manager' } },
+    const after = journey('amara', '2026-11-09', [
+      { type: 'step_completed', at: '2026-11-09T11:00:00Z', payload: { stepId: 'mgr-send-welcome-pack', by: 'manager' } },
     ])
     expect(step(after, 'welcome-pack')?.state).toBe('available')
   })

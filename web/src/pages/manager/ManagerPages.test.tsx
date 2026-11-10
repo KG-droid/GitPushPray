@@ -71,7 +71,59 @@ describe('Manager view', () => {
     expect(within(sheet).getByText(/Changes closed after Mon 2 Nov/)).toBeInTheDocument()
   })
 
-  it('setting goals sends the joiner their welcome pack, with the goals in it', async () => {
+  it('sends a new joiner’s welcome pack from the list, once the laptops they’re allowed are chosen', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager', { role: 'manager', personaId: 'amara' })
+
+    // Only Amara is still waiting for hers.
+    const list = screen.getByRole('list', { name: 'Your joiners' })
+    expect(within(list).getAllByRole('button', { name: 'Send welcome pack' })).toHaveLength(1)
+    await user.click(within(list).getByRole('button', { name: 'Send welcome pack' }))
+
+    const sheet = await screen.findByRole('dialog', { name: 'Send their welcome pack' })
+    expect(within(sheet).getByText(/First choose which laptops Amara is allowed/)).toBeInTheDocument()
+    const offered = within(sheet).getByRole('group', { name: 'Laptops they can choose' })
+    await user.click(within(offered).getByRole('checkbox', { name: /Surface Pro/ }))
+    await user.click(within(offered).getByRole('checkbox', { name: /Surface Laptop/ }))
+    await user.click(within(within(sheet).getByRole('radiogroup', { name: 'Recommended laptop' })).getByRole('radio', { name: /Apple MacBook Pro/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Send welcome pack' }))
+
+    // Sent, with the laptop options saved alongside it.
+    expect(screen.queryByRole('button', { name: 'Send welcome pack' })).not.toBeInTheDocument()
+    const sent = (stepId: string) => repository.listEvents('amara').find((e) => e.payload?.stepId === stepId)
+    expect(sent('mgr-send-welcome-pack')).toBeDefined()
+    expect(sent('mgr-set-device-spec')?.payload?.value).toBe('developer|hp-elitebook-g11,macbook-pro|macbook-pro')
+
+    // Amara's pack has arrived, and tells her which laptops she can choose from.
+    await user.click(await screen.findByRole('button', { name: /Manager view, Daniel/ }))
+    await user.click(await screen.findByRole('button', { name: /Amara \(joiner\)/ }))
+    await user.click(await screen.findByText('Your welcome pack has arrived'))
+    const pack = await screen.findByRole('dialog', { name: 'Your welcome pack has arrived' })
+    expect(within(pack).getByText(/Laptops you can choose from, picked by Daniel/)).toBeInTheDocument()
+    expect(within(pack).getByText(/Apple MacBook Pro.*Daniel recommends this one/)).toBeInTheDocument()
+    expect(within(pack).queryByText(/Surface Pro/)).not.toBeInTheDocument()
+  })
+
+  it('shows the laptops already chosen when the pack is sent from the joiner’s page', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/amara', { role: 'manager' })
+
+    // The laptop options were set on their own first, so the pack is ready to go.
+    await user.click(screen.getByText('Set their laptop spec'))
+    await user.click(within(await screen.findByRole('dialog', { name: 'Set their laptop spec' })).getByRole('button', { name: 'Confirm spec' }))
+
+    expect(await screen.findByText(/Start here: Amara’s welcome pack/)).toBeInTheDocument()
+    await user.click(await screen.findByRole('button', { name: 'Send welcome pack' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Send their welcome pack' })
+    expect(within(sheet).queryByText(/First choose which laptops/)).not.toBeInTheDocument()
+    expect(within(within(sheet).getByRole('region', { name: 'Laptops in the pack' })).getAllByRole('listitem')).toHaveLength(4)
+    await user.click(within(sheet).getByRole('button', { name: 'Send welcome pack' }))
+
+    expect(await screen.findByText(/set off 1 more thing for Amara/)).toBeInTheDocument()
+    expect(screen.queryByText(/Start here: Amara’s welcome pack/)).not.toBeInTheDocument()
+  })
+
+  it('adds the goals the manager sets to the joiner’s welcome pack', async () => {
     const user = userEvent.setup()
     renderApp('/manager/joiner/priya', { role: 'manager' })
 
@@ -81,11 +133,9 @@ describe('Manager view', () => {
     const first = within(sheet).getByLabelText('Goal 1')
     await user.clear(first)
     await user.type(first, 'Ship the new refunds API')
-    await user.click(within(sheet).getByRole('button', { name: /Set goals and send welcome pack/ }))
+    await user.click(within(sheet).getByRole('button', { name: /Add goals to their welcome pack/ }))
 
-    expect(await screen.findByText(/set off 1 more thing for Priya/)).toBeInTheDocument()
-
-    // Over on the joiner's side, the welcome pack is now unlocked and carries the goals.
+    // Over on the joiner's side, the welcome pack Daniel already sent now carries the goals.
     await user.click(await screen.findByRole('button', { name: /Manager view, Daniel/ }))
     await user.click(await screen.findByRole('button', { name: /Priya \(joiner\)/ }))
     await user.click(await screen.findByText('Your welcome pack has arrived'))

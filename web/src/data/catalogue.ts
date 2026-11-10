@@ -132,6 +132,17 @@ export const stepCatalogue: StepDefinition[] = [
     unlock: { type: 'always' },
   },
   {
+    id: 'welcome-pack',
+    stage: 'offer',
+    owner: 'joiner',
+    kind: 'content',
+    icon: 'redeem',
+    title: 'Your welcome pack has arrived',
+    body: 'A welcome from your manager, with what they’ve lined up for you before Day 1. Your first goals and first-week plan are added here as your manager sets them.',
+    unlock: { type: 'stepDone', stepId: 'mgr-send-welcome-pack' },
+    lockedHint: 'Arrives when your manager sends it.',
+  },
+  {
     id: 'share-documents',
     stage: 'offer',
     owner: 'joiner',
@@ -469,6 +480,18 @@ export const stepCatalogue: StepDefinition[] = [
 
   // ── Manager ready ───────────────────────────────────────
   {
+    id: 'mgr-send-welcome-pack',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'task',
+    icon: 'redeem',
+    title: 'Send their welcome pack',
+    body: 'The first thing your joiner gets from you. Where they need a laptop, you choose which ones they can pick from before it goes.',
+    unlock: { type: 'always' },
+    dueOffsetDays: -28,
+    minutes: 2,
+  },
+  {
     id: 'mgr-assign-buddy',
     stage: 'manager-ready',
     owner: 'manager',
@@ -572,7 +595,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'task',
     icon: 'flag',
     title: 'Set first 3-month goals',
-    body: 'Three simple goals. Setting them sends your joiner their welcome pack.',
+    body: 'Three simple goals. They’re added to your joiner’s welcome pack.',
     unlock: { type: 'always' },
     dueOffsetDays: -7,
     minutes: 10,
@@ -588,17 +611,6 @@ export const stepCatalogue: StepDefinition[] = [
     unlock: { type: 'always' },
     dueOffsetDays: -5,
     minutes: 5,
-  },
-  {
-    id: 'welcome-pack',
-    stage: 'manager-ready',
-    owner: 'joiner',
-    kind: 'content',
-    icon: 'redeem',
-    title: 'Your welcome pack has arrived',
-    body: 'Your first goals, your Day 1 plan and a note from your manager.',
-    unlock: { type: 'stepDone', stepId: 'mgr-set-goals' },
-    lockedHint: 'Arrives when your manager has set your first goals.',
   },
 
   // ── Day 1 to Week 1 ─────────────────────────────────────

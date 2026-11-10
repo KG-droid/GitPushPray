@@ -38,6 +38,12 @@ describe('planCatchUp', () => {
     expect(after.steps.find((s) => s.id === 'mgr-request-device')?.state).toBe('done')
   })
 
+  it('chooses the laptop options before sending the welcome pack', () => {
+    const ids = run('amara', '2026-12-22').plan.map((p) => p.stepId)
+    expect(ids).toContain('mgr-send-welcome-pack')
+    expect(ids.indexOf('mgr-set-device-spec')).toBeLessThan(ids.indexOf('mgr-send-welcome-pack'))
+  })
+
   it('gives the welcome pack real goals for the role', () => {
     const { after } = run('priya', '2026-12-07')
     expect(after.steps.find((s) => s.id === 'mgr-set-goals')?.value).toMatch(/first change to production/)

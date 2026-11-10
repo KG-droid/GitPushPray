@@ -12,6 +12,28 @@ function view(id: string, today: string, extra: Omit<JourneyEvent, 'id' | 'perso
   return managerView(journey, events)
 }
 
+describe('welcome pack', () => {
+  it('is the manager’s first task for a new joiner, and waits for the laptop options', () => {
+    const v = view('amara', '2026-11-09')
+    expect(v.tasks[0].id).toBe('mgr-send-welcome-pack')
+    expect(v.welcomePack).toMatchObject({ sent: false, needsLaptops: true })
+    expect(managerNudges([v])).toContainEqual({ kind: 'welcome-pack', personaId: 'amara', name: 'Amara', needsLaptops: true })
+  })
+
+  it('needs no laptop choice for a role without one', () => {
+    const events = seedEvents.filter((e) => !(e.personaId === 'rhys' && e.payload?.stepId === 'mgr-send-welcome-pack'))
+    const persona = seedPersonas.find((p) => p.id === 'rhys')!
+    const journey = buildJourney({ persona, events, today: '2026-11-09', steps: stepCatalogue, checks: checkCatalogue })
+    expect(managerView(journey, events).welcomePack).toMatchObject({ sent: false, needsLaptops: false })
+  })
+
+  it('stops nudging once it has been sent', () => {
+    const v = view('priya', '2026-11-09')
+    expect(v.welcomePack).toMatchObject({ sent: true, sentOn: '2026-11-02' })
+    expect(managerNudges([v]).some((n) => n.kind === 'welcome-pack')).toBe(false)
+  })
+})
+
 describe('managerView', () => {
   it('lists only the manager’s own tasks, available ones first', () => {
     const v = view('priya', '2026-11-09')

@@ -341,7 +341,19 @@ function buildSeedEvents(): JourneyEvent[] {
     if (p.id !== 'priya') done(p.id, p.offerAcceptedOn, 'accessibility-needs', 'joiner', 'no')
   }
 
-  // Priya: buddy assigned, has picked a learning bite. Goals not set yet (good for the chain-reaction demo).
+  // Welcome packs have gone to everyone whose manager has had what they need to send one. Sam, Nia and Amara
+  // need a laptop and nobody has chosen their options yet, so their managers still have the pack to send.
+  for (const [personaId, at] of [
+    ['priya', '2026-11-02'],
+    ['rhys', '2026-10-27'],
+    ['margaret', '2026-10-20'],
+    ['jordan', '2026-10-13'],
+    ['tom', '2026-10-10'],
+  ] as const) {
+    done(personaId, at, 'mgr-send-welcome-pack', 'manager')
+  }
+
+  // Priya: buddy assigned, has picked a learning bite. Goals not set yet.
   done('priya', '2026-11-02', 'mgr-assign-buddy', 'manager')
   done('priya', '2026-10-24', 'learning-picks', 'joiner', 'banking-101')
   done('priya', '2026-11-02', 'mgr-set-device-spec', 'manager', 'developer')

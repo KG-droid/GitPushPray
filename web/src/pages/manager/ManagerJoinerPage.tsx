@@ -4,6 +4,7 @@ import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded'
 import HourglassEmptyRounded from '@mui/icons-material/HourglassEmptyRounded'
 import ForumRounded from '@mui/icons-material/ForumRounded'
 import ShieldRounded from '@mui/icons-material/ShieldRounded'
+import RedeemRounded from '@mui/icons-material/RedeemRounded'
 import VisibilityOffRounded from '@mui/icons-material/VisibilityOffRounded'
 import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded'
 import TrendingDownRounded from '@mui/icons-material/TrendingDownRounded'
@@ -15,6 +16,7 @@ import { StepRow } from '../../components/StepRow'
 import { countdownLabel, formatShortDate } from '../../domain/dates'
 import { firstWeekEssentials } from '../../domain/manager'
 import { helloMessage } from '../../domain/risk'
+import { SEND_WELCOME_PACK_STEP } from '../../domain/welcomePack'
 import { useDemo } from '../../demo/useDemo'
 import { ManagerTaskSheet } from './ManagerTaskSheet'
 import { StatusChip } from './StatusChip'
@@ -54,6 +56,29 @@ export function ManagerJoinerPage() {
           </Box>
         </Box>
       </Stack>
+
+      {!view.welcomePack.sent && view.welcomePack.step?.state === 'available' && (
+        <Card sx={{ borderColor: 'secondary.main', borderWidth: 2 }}>
+          <CardContent>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <IconTile icon={<RedeemRounded color="secondary" />} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  Start here: {p.firstName}’s welcome pack
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 1.5 }}>
+                  {view.welcomePack.needsLaptops
+                    ? `It’s the first thing ${p.firstName} gets from you. Choose which laptops they can pick from, then send it.`
+                    : `It’s the first thing ${p.firstName} gets from you, and it’s ready to go.`}
+                </Typography>
+                <Button variant="contained" onClick={() => setOpenTask(SEND_WELCOME_PACK_STEP)}>
+                  Send welcome pack
+                </Button>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
       {view.askedForYou.length > 0 && (
         <Card sx={{ borderColor: 'secondary.main', borderWidth: 2 }}>

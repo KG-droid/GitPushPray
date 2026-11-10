@@ -2,6 +2,7 @@ import { GOAL_SEPARATOR, suggestedGoals } from '../data/goals'
 import { buildJourney, type JourneyInput, type JourneyView, type StepView } from '../domain/journey'
 import { PULSE_STEP_IDS } from '../domain/pulse'
 import { joinPlan, recommendedIds, WEEK_ONE_STEP } from '../domain/weekOne'
+import { SEND_WELCOME_PACK_STEP, welcomePackStatus } from '../domain/welcomePack'
 import type { Owner, Persona, StageId } from '../domain/types'
 
 /**
@@ -23,6 +24,8 @@ const END_OF_WEEK_ONE = 4
 
 function shouldBeDone(s: StepView, j: JourneyView): boolean {
   if (s.state !== 'available' || s.kind === 'content' || s.exploreOnly || s.stage === 'day-30' || LEAVE_OPEN.includes(s.id)) return false
+  // The pack can't go until the laptop options are chosen, so it waits a round for them.
+  if (s.id === SEND_WELCOME_PACK_STEP && welcomePackStatus(j).needsLaptops) return false
   const daysSinceStart = -j.daysToStart
   if (j.daysToStart <= 0 && BEFORE_DAY_ONE.includes(s.stage)) return true
   if (s.stage === 'week-one') return daysSinceStart >= END_OF_WEEK_ONE
