@@ -11,8 +11,8 @@ describe('Journey tab', () => {
     expect(screen.getByText(/Stage 2 of 6/)).toBeInTheDocument()
     const stages = screen.getByRole('list', { name: 'Journey stages' })
     expect(within(stages).getByText('You are here')).toBeInTheDocument()
-    expect(screen.getByText('Set up your pay and pension')).toBeInTheDocument()
-    expect(screen.getByText(/only ask for bank details once we know you’re joining/)).toBeInTheDocument()
+    expect(screen.getByText('Add a photo for your ID badge')).toBeInTheDocument()
+    expect(screen.getByText(/Opens two weeks before you start/)).toBeInTheDocument()
   })
 
   it('lets the joiner make a choice from the step sheet and tells them what it set off', async () => {

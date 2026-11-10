@@ -37,14 +37,14 @@ describe('Explore tab', () => {
 
   it('lets a cleared joiner set up pay with their chosen pension', async () => {
     const user = userEvent.setup()
-    renderApp('/explore/benefits', { personaId: 'rhys', today: '2026-11-20' })
+    renderApp('/explore/benefits', { personaId: 'rhys', today: '2026-11-24' })
     await user.click(screen.getByRole('button', { name: 'Set up pay with a 6% pension' }))
     expect(await screen.findByText('Pay and pension set up at 6%')).toBeInTheDocument()
   })
 
   it('keeps pay set-up locked until checks clear, but the calculator still works', () => {
     renderApp('/explore/benefits')
-    expect(screen.getByText(/only ask for bank details once we know you’re joining/)).toBeInTheDocument()
+    expect(screen.getByText(/Unlocks on Day 1, once all your checks are cleared/)).toBeInTheDocument()
     expect(screen.getByRole('slider')).toBeInTheDocument()
   })
 

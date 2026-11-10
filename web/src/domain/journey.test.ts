@@ -94,9 +94,9 @@ describe('unlocking ("earned, not withheld")', () => {
   it('keeps pay set-up locked until every check clears, with a reason', () => {
     const before = step(journey('priya', '2026-11-09'), 'pay-and-pension')
     expect(before?.state).toBe('locked')
-    expect(before?.lockedHint).toMatch(/checks are cleared/)
+    expect(before?.lockedHint).toMatch(/Unlocks on Day 1/)
 
-    expect(step(journey('priya', '2026-11-20'), 'pay-and-pension')?.state).toBe('available')
+    expect(step(journey('priya', '2026-12-08'), 'pay-and-pension')?.state).toBe('available')
   })
 
   it('unlocks the welcome pack when the manager sends it (chain reaction)', () => {
