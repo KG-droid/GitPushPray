@@ -57,8 +57,6 @@ export interface Persona {
   checkPlan: CheckPlan
   /** One-line summary for the demo persona switcher */
   tagline: string
-  /** Background joiners that only appear in a manager's list, not in the demo persona switcher */
-  hiddenFromSwitcher?: boolean
 }
 
 /** Everything that happens in a journey is an event; unlocks are rules over events, checks and dates. */

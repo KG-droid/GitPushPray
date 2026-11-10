@@ -19,7 +19,7 @@ export function DemoBar() {
   const navigate = useNavigate()
   const { persona } = demo.journey
   const hasBuddy = !!persona.buddyId
-  const personas = repository.listPersonas().filter((p) => !p.hiddenFromSwitcher || p.id === persona.id)
+  const personas = repository.listPersonas()
 
   // Tucked away: keep only the space a phone's status bar needs.
   if (!demo.barOpen) return <Box sx={{ position: 'sticky', top: 0, height: 'env(safe-area-inset-top)', bgcolor: 'background.default' }} />

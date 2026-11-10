@@ -280,7 +280,7 @@ export const seedPersonas: Persona[] = [
     checkPlan: standardChecks(22),
     tagline: 'First-time team leader in Leeds',
   },
-  // Daniel's other joiners, so his list isn't a single row. Not in the demo switcher.
+  // Daniel's other joiners, so his list isn't a single row.
   {
     id: 'tom',
     firstName: 'Tom',
@@ -300,7 +300,6 @@ export const seedPersonas: Persona[] = [
     recruiterId: 'rec-sophie',
     checkPlan: standardChecks(18),
     tagline: 'Starts next week',
-    hiddenFromSwitcher: true,
   },
   {
     id: 'amara',
@@ -320,7 +319,6 @@ export const seedPersonas: Persona[] = [
     recruiterId: 'rec-sophie',
     checkPlan: standardChecks(24),
     tagline: 'Just accepted her offer',
-    hiddenFromSwitcher: true,
   },
 ]
 

@@ -103,7 +103,6 @@ export function DemoPanel() {
         <List dense disablePadding>
           {repository
             .listPersonas()
-            .filter((p) => !p.hiddenFromSwitcher)
             .map((p) => (
             <ListItemButton
               key={p.id}
