@@ -10,10 +10,9 @@ export const CHAT_WIDTH = 760
 /** sx for a composer pinned to the bottom: above the tabs on phones, centred in the content area beside the rail on desktop. */
 export const pinnedComposerSx = {
   position: 'fixed',
-  left: { xs: 0, md: SIDEBAR_WIDTH },
-  right: 0,
-  mx: 'auto',
-  maxWidth: { xs: PHONE_WIDTH, md: CHAT_WIDTH },
+  // Equal side gaps centre the capped column. Auto margins don't work here: a parent Stack resets its children's margins to 0.
+  left: { xs: `max(0px, calc((100% - ${PHONE_WIDTH}px) / 2))`, md: `calc(${SIDEBAR_WIDTH}px + max(0px, (100% - ${SIDEBAR_WIDTH}px - ${CHAT_WIDTH}px) / 2))` },
+  right: { xs: `max(0px, calc((100% - ${PHONE_WIDTH}px) / 2))`, md: `max(0px, calc((100% - ${SIDEBAR_WIDTH}px - ${CHAT_WIDTH}px) / 2))` },
   bottom: { xs: 'calc(56px + env(safe-area-inset-bottom))', md: 0 },
 } as const
 
