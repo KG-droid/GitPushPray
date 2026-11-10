@@ -18,7 +18,6 @@ export function PeoplePage() {
 
   const manager = repository.getPerson(persona.managerId)
   const buddy = persona.buddyId ? repository.getPerson(persona.buddyId) : undefined
-  const managerUnlocked = step('meet-manager')?.state !== 'locked'
   const buddyAssigned = step('mgr-assign-buddy')?.state === 'done'
   const teamStep = step('meet-team')
   const teamUnlocked = teamStep?.state !== 'locked'
@@ -37,15 +36,14 @@ export function PeoplePage() {
       </Box>
 
       <Section title="Your manager">
-        {manager && managerUnlocked ? (
+        {/* Always open: the joiner can message their manager from the very start. */}
+        {manager && (
           <PersonCard
             person={manager}
             preview={lastMessage(manager, false)}
             onAsk={(topic) => navigate(`/people/chat/${manager.id}`, { state: { draft: askAboutDraft(manager.name, topic) } })}
             action={<Button variant="outlined" startIcon={<ChatBubbleRounded />} onClick={() => navigate(`/people/chat/${manager.id}`)}>Message {first(manager.name)}</Button>}
           />
-        ) : (
-          <LockedCard text={step('meet-manager')?.lockedHint ?? 'Your manager’s intro unlocks closer to your start date.'} />
         )}
       </Section>
 

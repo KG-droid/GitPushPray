@@ -92,10 +92,17 @@ export interface JourneyInput {
   checks: CheckDefinition[]
 }
 
+/**
+ * Seeded history is dated, so it rewinds with the demo date. Anything done live in the demo (ids from newId)
+ * stays put, so jumping back in time doesn't lose a manager's laptop choices or anyone else's selections.
+ */
+export function hasHappened(e: JourneyEvent, today: string): boolean {
+  return e.id.startsWith('evt-') || e.at.slice(0, 10) <= today
+}
+
 export function buildJourney({ persona, events, today, steps, checks }: JourneyInput): JourneyView {
-  // Only events that have happened by "today" count, so time travel works in both directions.
   const past = events
-    .filter((e) => e.personaId === persona.id && e.at.slice(0, 10) <= today)
+    .filter((e) => e.personaId === persona.id && hasHappened(e, today))
     .sort((a, b) => a.at.localeCompare(b.at))
 
   const startDate = currentStartDate(persona, past)

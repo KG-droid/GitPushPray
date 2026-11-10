@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { checkCatalogue, stepCatalogue } from '../data/catalogue'
 import { seedEvents, seedPersonas } from '../data/seed'
 import { buildJourney, evaluate } from './journey'
+import { laptopOrder } from './laptop'
 import type { JourneyEvent } from './types'
 
 const persona = (id: string) => seedPersonas.find((p) => p.id === id)!
@@ -112,6 +113,22 @@ describe('unlocking ("earned, not withheld")', () => {
       { type: 'step_completed', at: '2026-11-09T11:00:00Z', payload: { stepId: 'mgr-set-goals', by: 'manager' } },
     ])
     expect(step(j, 'mgr-set-goals')?.state).not.toBe('done')
+  })
+
+  it('keeps choices made live in the demo when the date jumps back', () => {
+    const events: JourneyEvent[] = [
+      ...seedEvents,
+      {
+        id: 'evt-1',
+        personaId: 'priya',
+        type: 'step_completed',
+        at: '2026-11-09T11:00:00Z',
+        payload: { stepId: 'mgr-set-device-spec', by: 'manager', value: 'developer|macbook-pro,hp-elitebook-g11|macbook-pro' },
+      },
+    ]
+    const j = buildJourney({ persona: persona('priya'), events, today: '2026-11-01', steps: stepCatalogue, checks: checkCatalogue })
+    expect(step(j, 'mgr-set-device-spec')?.state).toBe('done')
+    expect(laptopOrder(j).recommended).toBe('macbook-pro')
   })
 
   it('evaluates combined rules', () => {
