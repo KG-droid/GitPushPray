@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test/renderApp'
+import { repository } from '../../data/repository'
 
 describe('Manager view', () => {
   it('lists the manager’s joiners with their status and today’s nudges', () => {
@@ -91,5 +92,57 @@ describe('Manager access request', () => {
 
     await user.click(screen.getByText('Request system access'))
     expect(await screen.findByText('6 access items requested')).toBeInTheDocument()
+  })
+})
+
+describe('Manager view: questions sent to the manager', () => {
+  it('shows a joiner’s handover from the assistant at the top of the manager’s day', async () => {
+    renderApp('/manager', { role: 'manager' })
+    expect(screen.queryByText('Priya asked for you')).toBeNull()
+
+    act(() => {
+      repository.addEvent({
+        personaId: 'priya',
+        type: 'handover_sent',
+        at: '2026-11-09T10:00:00Z',
+        payload: { route: 'manager', summary: 'Priya would like to know what week one looks like.' },
+      })
+    })
+    expect(await screen.findByText('Priya asked for you')).toBeInTheDocument()
+    expect(screen.getByText(/what week one looks like/)).toBeInTheDocument()
+  })
+})
+
+describe('Manager view: a joiner who has gone quiet', () => {
+  it('nudges the manager, and one tap sends a hello that the joiner can read', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager', { role: 'manager' })
+
+    // Two quiet joiners share one card, which opens the one who has been quiet longest.
+    await user.click(screen.getByText('Priya and Amara have gone quiet'))
+    expect(screen.getByText(/may be at risk of not starting/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Send Priya a quick hello' }))
+    expect(await screen.findByText(/You said hello to Priya/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Send Priya a quick hello' })).toBeNull()
+    expect(repository.listEvents('priya').some((e) => e.type === 'chat_message' && JSON.stringify(e.payload).includes('looking forward to having you'))).toBe(true)
+  })
+})
+
+describe('Manager view: planning the first week', () => {
+  it('lets the manager pick sessions, and shows them as done afterwards', async () => {
+    const user = userEvent.setup()
+    renderApp('/manager/joiner/priya', { role: 'manager' })
+
+    await user.click(screen.getByText('Plan their first week'))
+    const sheet = await screen.findByRole('dialog', { name: 'Plan their first week' })
+    // The sessions that suit an engineer are ticked to begin with.
+    expect(within(sheet).getByRole('checkbox', { name: /Architecture walkthrough/ })).toBeChecked()
+    expect(within(sheet).getByRole('checkbox', { name: /Engineering guild lunch/ })).not.toBeChecked()
+
+    await user.click(within(sheet).getByRole('checkbox', { name: /Engineering guild lunch/ }))
+    await user.click(within(sheet).getByRole('button', { name: 'Add to Priya’s first week' }))
+
+    expect(repository.listEvents('priya').some((e) => JSON.stringify(e.payload ?? {}).includes('mgr-plan-week-one') && JSON.stringify(e.payload ?? {}).includes('tech-guild'))).toBe(true)
   })
 })

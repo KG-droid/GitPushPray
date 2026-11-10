@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkCatalogue, stepCatalogue } from '../data/catalogue'
+import { NO_HEADSET, checkCatalogue, stepCatalogue } from '../data/catalogue'
 import { seedEvents, seedPersonas } from '../data/seed'
 import { buildJourney } from './journey'
 import { laptopLabel, laptopOrder, suggestedLaptopSpec } from './laptop'
@@ -117,5 +117,14 @@ describe('laptop spec and model', () => {
     expect(suggestedLaptopSpec('data')).toBe('developer')
     expect(suggestedLaptopSpec('risk')).toBe('standard')
     expect(suggestedLaptopSpec('graduate')).toBe('standard')
+  })
+})
+
+describe('no headset', () => {
+  it('is offered as the last headset option and counts as a completed choice', () => {
+    const events = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'no'), completed('priya', '2026-11-09', 'choose-headset', NO_HEADSET)]
+    const headset = journey('priya', '2026-11-09', events).steps.find((s) => s.id === 'choose-headset')
+    expect(headset?.options?.at(-1)?.value).toBe(NO_HEADSET)
+    expect(headset).toMatchObject({ state: 'done', value: NO_HEADSET })
   })
 })

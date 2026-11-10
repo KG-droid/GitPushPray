@@ -63,7 +63,7 @@ describe('Journey tab', () => {
     const user = userEvent.setup()
     renderApp('/journey')
 
-    await user.click(screen.getByRole('button', { name: /Manager ready/ }))
+    await user.click(screen.getByRole('button', { name: /Your team gets ready/ }))
     expect(await screen.findByText('Daniel: assign a buddy')).toBeInTheDocument()
     expect(screen.getByText('Daniel: set first 3-month goals')).toBeInTheDocument()
   })
@@ -83,5 +83,27 @@ describe('Checks tracker', () => {
   it('includes the regulatory reference for an SM&CR hire', () => {
     renderApp('/journey/checks', { personaId: 'margaret' })
     expect(screen.getByText('Regulatory reference')).toBeInTheDocument()
+  })
+})
+
+describe('Today and Journey stay short', () => {
+  it('opens a choice in its own sheet instead of unfolding it on Today', async () => {
+    const user = userEvent.setup()
+    renderApp('/today')
+    expect(screen.queryByRole('radio')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Choose now' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Do you have any accessibility requirements?' })
+    expect(within(sheet).getByRole('radio', { name: /Yes, I’d like to talk it through/ })).toBeInTheDocument()
+  })
+
+  it('gives a locked step one short line, with the full reason when opened', async () => {
+    const user = userEvent.setup()
+    renderApp('/journey')
+    // The headset and the phone step share the same short line.
+    expect(screen.getAllByText('Unlocks after the accessibility question and your ID check.')).toHaveLength(2)
+    expect(screen.queryByText(/your manager will agree your headset with you/)).toBeNull()
+    await user.click(screen.getByText('Choose your headset'))
+    const sheet = await screen.findByRole('dialog', { name: 'Choose your headset' })
+    expect(within(sheet).getByText(/your manager will agree your headset with you/)).toBeInTheDocument()
   })
 })

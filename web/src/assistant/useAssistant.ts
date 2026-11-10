@@ -3,6 +3,7 @@ import { repository } from '../data/repository'
 import { useDemo } from '../demo/useDemo'
 import type { JourneyView } from '../domain/journey'
 import { STAGES } from '../domain/journey'
+import { journeyProgress } from '../domain/progress'
 import { requestHandover, streamAsk } from './client'
 import type { ChatTurn, HandoverRoute, JoinerContext } from './protocol'
 
@@ -52,6 +53,7 @@ export function joinerContext(journey: JourneyView): JoinerContext {
     currentStage: STAGES.find((s) => s.id === journey.currentStage)?.title ?? journey.currentStage,
     managerName: repository.getPerson(p.managerId)?.name,
     buddyName: p.buddyId ? repository.getPerson(p.buddyId)?.name : undefined,
+    progress: journeyProgress(journey),
   }
 }
 

@@ -172,6 +172,8 @@ export interface StepDefinition {
   unlock: UnlockRule
   /** Plain-English reason shown while locked, so content feels earned rather than withheld */
   lockedHint?: string
+  /** One short line for lists; the full reason (lockedHint) is shown when the step is opened */
+  lockedShort?: string
   /** Wording for the joiner when this is someone else's locked step */
   teamHint?: string
   /** The step is done on its own screen; journey views link there instead of showing the form */
@@ -181,6 +183,8 @@ export interface StepDefinition {
   visibleWhen?: { stepId: string; value: string }
   /** Reached from the Explore tab only: kept out of the journey stages and the "next step" on Today */
   exploreOnly?: boolean
+  /** Nice-to-have: stores a preference but never counts towards the joiner's progress */
+  optional?: boolean
   /** Due date relative to the (current) start date. -14 = two weeks before Day 1 */
   dueOffsetDays?: number
   minutes?: number

@@ -12,18 +12,19 @@ import type {
   CheckId,
   CheckUpdatedPayload,
   FeedbackSubmittedPayload,
+  PulsePayload,
   Owner,
   StartDateChangedPayload,
   StepCompletedPayload,
 } from '../domain/types'
-import { DemoContext, type ChatEntry, type DemoContextValue, type DemoState } from './useDemo'
+import { planCatchUp } from './catchUp'
+import { DEMO_STATE_KEY, DemoContext, type ChatEntry, type DemoContextValue, type DemoState } from './useDemo'
 
-const STATE_KEY = 'lbg-joiner:demo:v1'
 const DEFAULT_STATE: DemoState = { personaId: 'priya', todayOverride: null, role: 'joiner' }
 
 function loadState(): DemoState {
   try {
-    const raw = localStorage.getItem(STATE_KEY)
+    const raw = localStorage.getItem(DEMO_STATE_KEY)
     return raw ? { ...DEFAULT_STATE, ...(JSON.parse(raw) as DemoState) } : DEFAULT_STATE
   } catch {
     return DEFAULT_STATE
@@ -44,9 +45,12 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const eventsVersion = useSyncExternalStore(subscribe, getVersion)
 
-  useEffect(() => localStorage.setItem(STATE_KEY, JSON.stringify(state)), [state])
+  useEffect(() => localStorage.setItem(DEMO_STATE_KEY, JSON.stringify(state)), [state])
 
-  const today = state.todayOverride ?? toIsoDate(new Date())
+  // In a shared demo the date is shared too, so a manager's action on one phone lands on the same day for the joiner on another.
+  const share = repository.shareStatus()
+  const todayOverride = share.mode === 'shared' ? (repository.sharedToday() ?? null) : state.todayOverride
+  const today = todayOverride ?? toIsoDate(new Date())
   const persona = repository.getPersona(state.personaId) ?? repository.listPersonas()[0]
 
   /** Builds any persona's journey on the demo date; cached until events or the date change. */
@@ -131,6 +135,29 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [journeyFor, persona, stamp, today],
   )
 
+  const catchUp = useCallback(() => {
+    const plan = planCatchUp({
+      persona,
+      events: repository.listEvents(persona.id),
+      today,
+      steps: repository.listSteps(),
+      checks: repository.listChecks(),
+    })
+    // Real times, a millisecond apart, so the order of the plan is the order the journey sees.
+    const base = Date.now()
+    plan.forEach((s, i) => {
+      const payload: StepCompletedPayload = { stepId: s.stepId, by: s.by, value: s.value }
+      repository.addEvent({
+        personaId: persona.id,
+        type: 'step_completed',
+        at: `${today}T${new Date(base + i).toISOString().slice(11)}`,
+        payload: { ...payload },
+      })
+    })
+    setToast(plan.length ? `Caught up: ${plan.length} step${plan.length === 1 ? '' : 's'} marked done.` : 'Already up to date.')
+    return plan.length
+  }, [persona, today])
+
   const slipStartDate = useCallback(
     (days: number) => {
       const slowest = journey.checks.filter((c) => c.status !== 'cleared').at(-1)
@@ -179,8 +206,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
       // Saying hello to your buddy is a journey step: complete it, which also tells the user.
       const isBuddy = withId === persona.buddyId
-      const hello = journey.steps.find((s) => s.id === 'say-hello')
-      if (isBuddy && hello?.state === 'available') completeStep('say-hello')
+      // Messaging someone also counts as meeting them, so the journey doesn't prompt for it again.
+      const stepIds = isBuddy ? ['say-hello', 'meet-buddy'] : withId === persona.managerId ? ['meet-manager'] : []
+      for (const id of stepIds) {
+        if (journey.steps.find((s) => s.id === id)?.state === 'available') completeStep(id)
+      }
 
       setTypingId(withId)
       window.setTimeout(() => {
@@ -201,12 +231,32 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [persona, stamp, today],
   )
 
+  const messageJoiner = useCallback(
+    (personaId: string, text: string) => {
+      const target = repository.getPersona(personaId)
+      if (!target || !text.trim()) return
+      const payload: ChatMessagePayload = { withId: target.managerId, from: 'them', text: text.trim() }
+      repository.addEvent({ personaId, type: 'chat_message', at: stamp(), payload: { ...payload } })
+      setToast(`Sent to ${target.firstName}. It will be waiting for them in their chat with you.`)
+    },
+    [stamp],
+  )
+
   const recordHandover = useCallback(
     (route: HandoverSentPayload['route'], summary: string) => {
       const payload: HandoverSentPayload = { route, summary }
       repository.addEvent({ personaId: persona.id, type: 'handover_sent', at: stamp(), payload: { ...payload } })
     },
     [persona.id, stamp],
+  )
+
+  const submitPulse = useCallback(
+    (stepId: string, answers: PulsePayload) => {
+      repository.addEvent({ personaId: persona.id, type: 'pulse_submitted', at: stamp(), payload: { ...answers } })
+      completeStep(stepId)
+      if (stepId === 'day-30-checkin') setToast('One month in. Thank you for telling us how it’s really going.')
+    },
+    [completeStep, persona.id, stamp],
   )
 
   const answeredCheckIns = useMemo(
@@ -256,25 +306,38 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const value: DemoContextValue = {
     ...state,
+    todayOverride,
     today,
     journey,
     setPersona: (personaId) => setState((s) => ({ ...s, personaId })),
-    setToday: (todayOverride) => setState((s) => ({ ...s, todayOverride })),
+    setToday: (value) => (share.mode === 'shared' ? repository.setSharedToday(value) : setState((s) => ({ ...s, todayOverride: value }))),
     setRole: (role) => setState((s) => ({ ...s, role })),
+    setBarOpen: (barOpen) => setState((s) => ({ ...s, barOpen })),
     journeyFor,
     completeStep,
+    catchUp,
     slipStartDate,
     delayCheck,
     resetPersona: () => repository.reset(persona.id),
     panelOpen,
     setPanelOpen,
+    share,
+    startSharing: () => repository.startSharing(state.todayOverride),
+    stopSharing: () => {
+      // Keep the date that was on screen when going back to a private demo.
+      const keep = repository.sharedToday() ?? null
+      repository.stopSharing()
+      setState((s) => ({ ...s, todayOverride: keep }))
+    },
     toast,
     clearToast: () => setToast(null),
     chats,
     sendChat,
     typingId,
     logMeetup,
+    messageJoiner,
     recordHandover,
+    submitPulse,
     answeredCheckIns,
     submitCheckIn,
     logQuestion,

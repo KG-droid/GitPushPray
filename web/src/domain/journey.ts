@@ -1,4 +1,5 @@
 import { addDays, daysUntil } from './dates'
+import { NO_HEADSET } from '../data/catalogue'
 import type {
   Audience,
   CheckDefinition,
@@ -22,9 +23,9 @@ import type {
 
 export const STAGES: { id: StageId; title: string; subtitle: string }[] = [
   { id: 'offer', title: 'Offer', subtitle: 'Welcome aboard' },
-  { id: 'unlock', title: 'Unlock & choose', subtitle: 'Get set up before Day 1' },
+  { id: 'unlock', title: 'Get set up', subtitle: 'Your choices and checks before Day 1' },
   { id: 'meet', title: 'Meet your people', subtitle: 'Your manager, buddy and team' },
-  { id: 'manager-ready', title: 'Manager ready', subtitle: 'Everything waiting for you' },
+  { id: 'manager-ready', title: 'Your team gets ready', subtitle: 'What they’re preparing for you' },
   { id: 'week-one', title: 'Day 1 to Week 1', subtitle: 'Find your feet' },
   { id: 'day-30', title: 'Day 30', subtitle: 'Connected and confident' },
 ]
@@ -118,8 +119,14 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     const done = completions.get(s.id)
     const state: StepState = done ? 'done' : evaluate(s.unlock, ctx) ? 'available' : 'locked'
     const changeUntil = s.changeUntilOffsetDays === undefined ? undefined : addDays(startDate, s.changeUntilOffsetDays)
+    // Don't promise a headset in the delivery copy if the joiner said they don't need one.
+    const body =
+      s.id === 'home-kit-address' && completions.get('choose-headset')?.value === NO_HEADSET
+        ? 'Your laptop and monitor will be couriered to your home before Day 1.'
+        : s.body
     return {
       ...s,
+      body,
       state,
       doneAt: done?.at,
       doneBy: done?.by,
@@ -145,20 +152,29 @@ export function buildJourney({ persona, events, today, steps, checks }: JourneyI
     vettingExpectedClearOn: checkViews.reduce((max, c) => (c.expectedClearOn > max ? c.expectedClearOn : max), today),
     stages,
     currentStage,
-    nextAction: pickNextAction(journeySteps, 'joiner'),
+    nextAction: pickNextAction(journeySteps, 'joiner', daysToStart),
     steps: stepViews,
     notices: buildNotices(persona, past, checkViews),
   }
 }
 
-/** Highest-priority available step for an owner: earliest stage, then earliest due date, tasks before content. */
-export function pickNextAction(steps: StepView[], owner: Owner): StepView | undefined {
+/**
+ * Highest-priority available step for an owner: earliest stage, then earliest due date, tasks before content.
+ * Once the joiner has started, what belongs to their first weeks leads, and anything left over from before
+ * Day 1 waits its turn. On Day 1 itself the Day 1 plan comes first.
+ */
+export function pickNextAction(steps: StepView[], owner: Owner, daysToStart = Infinity): StepView | undefined {
   const stageOrder = STAGES.map((s) => s.id)
   const kindOrder = { task: 0, choice: 0, content: 1 }
+  const started = daysToStart <= 0
+  const leftover = (s: StepView) => Number(started && stageOrder.indexOf(s.stage) < stageOrder.indexOf('week-one'))
+  const dayOnePlan = (s: StepView) => Number(!(daysToStart === 0 && s.id === 'day-one-plan'))
   return steps
     .filter((s) => s.owner === owner && s.state === 'available')
     .sort(
       (a, b) =>
+        dayOnePlan(a) - dayOnePlan(b) ||
+        leftover(a) - leftover(b) ||
         kindOrder[a.kind] - kindOrder[b.kind] ||
         stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage) ||
         (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'),

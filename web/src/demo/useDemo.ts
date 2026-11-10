@@ -1,9 +1,13 @@
 import { createContext, useContext } from 'react'
+import type { ShareStatus } from '../data/repository'
 import type { JourneyView } from '../domain/journey'
 import type { CheckInMilestone } from '../domain/feedback'
 import type { CheckId, HandoverSentPayload, MeetupKind, Owner } from '../domain/types'
 
 export type DemoRole = 'joiner' | 'manager' | 'buddy' | 'admin'
+
+/** Where this phone keeps who it is viewing as (the persona and role are per phone; the date and data can be shared). */
+export const DEMO_STATE_KEY = 'lbg-joiner:demo:v1'
 
 export interface DemoState {
   personaId: string
@@ -11,6 +15,8 @@ export interface DemoState {
   todayOverride: string | null
   /** Whose side of the app we're showing */
   role: DemoRole
+  /** The presenter's strip across the top is showing. Tucked away by default so the app looks like the product. */
+  barOpen?: boolean
 }
 
 export interface DemoContextValue extends DemoState {
@@ -24,11 +30,19 @@ export interface DemoContextValue extends DemoState {
   setRole(role: DemoRole): void
   /** Complete a step. Defaults to the selected persona's journey, done by the joiner */
   completeStep(stepId: string, opts?: { value?: string; by?: Owner; personaId?: string }): void
+  /** Complete everything that should already be done by the demo date, with sensible defaults */
+  catchUp(): number
   slipStartDate(days: number): void
   delayCheck(checkId: CheckId, days: number): void
   resetPersona(): void
+  setBarOpen(open: boolean): void
   panelOpen: boolean
   setPanelOpen(open: boolean): void
+  /** Whether this phone is in a shared demo, and its code */
+  share: ShareStatus
+  /** Let other phones follow this demo. Resolves to the demo's code. */
+  startSharing(): Promise<string>
+  stopSharing(): void
   /** Feedback message after an action, shown app-wide */
   toast: string | null
   clearToast(): void
@@ -40,8 +54,12 @@ export interface DemoContextValue extends DemoState {
   typingId: string | null
   /** Buddy logs a meetup with the selected joiner */
   logMeetup(kind: MeetupKind): void
+  /** The manager sends a joiner a message (it appears in the joiner's chat with their manager) */
+  messageJoiner(personaId: string, text: string): void
   /** Record that the joiner's question was handed to a person (so their buddy or manager can see it) */
   recordHandover(route: HandoverSentPayload['route'], summary: string): void
+  /** Answer the two-question pulse that belongs to a step, which also completes that step */
+  submitPulse(stepId: string, answers: { knowWhoToAsk: number; confident: number }): void
   /** Check-ins the selected joiner has already answered */
   answeredCheckIns: CheckInMilestone[]
   /** Submit a check-in. Stored anonymously; only the fact that it was done is tied to the joiner. */

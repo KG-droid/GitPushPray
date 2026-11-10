@@ -53,6 +53,9 @@ const laptopOptions: ChoiceOption[] = [
   { value: 'macbook-pro', label: 'Apple MacBook Pro', detail: 'Faster and with a brighter screen, for heavier workloads' },
 ]
 
+/** Stored as the headset step's value when the joiner doesn't need one. */
+export const NO_HEADSET = 'none'
+
 /** A small, fixed range of extra hardware to pick from after the laptop. Headsets are the first. */
 const headsetOptions: ChoiceOption[] = [
   { value: 'poly-blackwire-8225', label: 'HP Poly Blackwire 8225' },
@@ -60,7 +63,7 @@ const headsetOptions: ChoiceOption[] = [
   { value: 'poly-voyager-free-60-uc', label: 'HP Poly Voyager Free 60 UC' },
   { value: 'poly-voyager-surround-80', label: 'HP Poly Voyager Surround 80' },
   { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
-  { value: 'none', label: 'No headset, thanks', detail: 'You can ask for one later through the IT service desk.' },
+  { value: NO_HEADSET, label: 'No headset, I have an enterprise headset already', detail: 'We won’t order one for you. You can ask the IT service desk for one later.' },
 ]
 
 const phoneAccessOptions: ChoiceOption[] = [
@@ -183,6 +186,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepDone', stepId: 'mgr-set-device-spec' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your laptop spec.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question, we’ve confirmed your ID and right to work, and your manager has set your laptop spec. If you’ve asked for support, your manager will agree your laptop with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
@@ -207,6 +211,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your ID check.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree your headset with you in a conversation instead.',
     dueOffsetDays: laptopChangeDeadline,
@@ -230,6 +235,7 @@ export const stepCatalogue: StepDefinition[] = [
         { type: 'stepValue', stepId: 'accessibility-needs', value: 'no' },
       ],
     },
+    lockedShort: 'Unlocks after the accessibility question and your ID check.',
     lockedHint:
       'Unlocks once you’ve answered the accessibility question and we’ve confirmed your ID and right to work. If you’ve asked for support, your manager will agree this with you in a conversation instead.',
     minutes: 1,
@@ -548,6 +554,19 @@ export const stepCatalogue: StepDefinition[] = [
     minutes: 1,
   },
   {
+    id: 'your-access',
+    stage: 'manager-ready',
+    owner: 'joiner',
+    kind: 'content',
+    icon: 'key',
+    title: 'Your system access',
+    body: 'Your manager asked once. See how much is ready for Day 1 and what switches on after training. There’s nothing for you to chase.',
+    unlock: { type: 'stepDone', stepId: 'mgr-request-access' },
+    lockedHint: 'Appears when your manager has requested your access.',
+    href: '/journey/access',
+    hrefLabel: 'See your access',
+  },
+  {
     id: 'mgr-set-goals',
     stage: 'manager-ready',
     owner: 'manager',
@@ -558,6 +577,18 @@ export const stepCatalogue: StepDefinition[] = [
     unlock: { type: 'always' },
     dueOffsetDays: -7,
     minutes: 10,
+  },
+  {
+    id: 'mgr-plan-week-one',
+    stage: 'manager-ready',
+    owner: 'manager',
+    kind: 'task',
+    icon: 'event',
+    title: 'Plan their first week',
+    body: 'Pick the sessions that will make the first week count. They appear in the joiner’s Day 1 plan and calendar.',
+    unlock: { type: 'always' },
+    dueOffsetDays: -5,
+    minutes: 5,
   },
   {
     id: 'welcome-pack',
@@ -579,9 +610,39 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'content',
     icon: 'event',
     title: 'Your Day 1 plan',
-    body: 'Where to go, who meets you, and what happens hour by hour.',
+    body: 'Where to go and how to get there, who meets you, your desk next to your buddy or manager, and what happens hour by hour.',
     unlock: { type: 'daysToStart', atMost: 7 },
     lockedHint: 'Unlocks the week before you start.',
+    href: '/journey/day-one',
+    hrefLabel: 'See your Day 1 plan',
+  },
+  {
+    id: 'book-desk',
+    stage: 'week-one',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'event',
+    exploreOnly: true,
+    optional: true,
+    title: 'Book your Day 1 desk',
+    body: 'Keep the desk held next to your buddy or manager, or pick another. Done on your Day 1 plan.',
+    audience: { workPatterns: ['hybrid'] },
+    unlock: { type: 'always' },
+    href: '/journey/day-one',
+  },
+  {
+    id: 'day-one-travel',
+    stage: 'week-one',
+    owner: 'joiner',
+    kind: 'choice',
+    icon: 'event',
+    exploreOnly: true,
+    optional: true,
+    title: 'Plan your Day 1 journey',
+    body: 'Pick how you’ll travel and see the last leg to the front door. Done on your Day 1 plan.',
+    audience: { workPatterns: ['hybrid', 'shift', 'branch'] },
+    unlock: { type: 'always' },
+    href: '/journey/day-one',
   },
   {
     id: 'book-intros',

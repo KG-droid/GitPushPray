@@ -1,4 +1,5 @@
 import type { ChatTurn, HandoverRoute, JoinerContext } from '../src/assistant/protocol.ts'
+import { formatShortDate } from '../src/domain/dates.ts'
 import { policies } from './policies.ts'
 
 /**
@@ -23,7 +24,37 @@ export function section(policyId: string, n: number): { title: string; quote: st
 
 interface Rule {
   test: RegExp
-  answer: (j: JoinerContext) => ScriptedAnswer
+  /** Returning nothing means "this rule doesn't apply after all": the next matching rule gets a go */
+  answer: (j: JoinerContext, question: string) => ScriptedAnswer | undefined
+}
+
+const STOP = new Set(['why', 'when', 'what', 'how', 'where', 'isnt', 'cant', 'cannot', 'does', 'have', 'with', 'that', 'this', 'there', 'been', 'still', 'long', 'will', 'from', 'about', 'status'])
+
+/** Answers about the joiner's own journey from the progress the app sends: what's left, and why something is locked. */
+function aboutMyJourney(j: JoinerContext, question: string): ScriptedAnswer | undefined {
+  const p = j.progress
+  if (!p) return undefined
+  const due = (d?: string) => (d ? `, by ${formatShortDate(d)}` : '')
+
+  if (/\b(what['’]?s (left|next|outstanding)|what (do|should|can) i (need to )?(do|be doing)|to-?do|before i start|this week)\b/i.test(question)) {
+    const checks = `${p.checks.cleared} of ${p.checks.total} checks are cleared${p.checks.expectedBy ? `, with the last expected around ${formatShortDate(p.checks.expectedBy)}` : ''}`
+    const todo = p.todo.length
+      ? `Next for you: ${p.todo.slice(0, 3).map((t) => `${t.title}${due(t.due)}`).join('; ')}.`
+      : 'Nothing needs you right now.'
+    const team = p.team.length ? ` Your team still has ${p.team.length === 1 ? 'one thing' : `${p.team.length} things`} to do for you, like “${p.team[0].title}”.` : ''
+    return { text: `You’ve done ${p.stepsDone} of ${p.stepsTotal} of your steps, and ${checks}. ${todo}${team}`, citations: [] }
+  }
+
+  // "Why can't I choose my laptop yet?" Find the step the question is about.
+  const words = question.toLowerCase().match(/[a-z]{4,}/g)?.filter((w) => !STOP.has(w)) ?? []
+  const mentions = (title: string) => words.some((w) => title.toLowerCase().includes(w.replace(/s$/, '')))
+  const locked = p.locked.find((t) => mentions(t.title))
+  if (locked) return { text: `“${locked.title}” isn’t available yet. ${locked.unlocksWhen}`, citations: [] }
+  const team = p.team.find((t) => mentions(t.title))
+  if (team) return { text: `“${team.title}” is on ${team.who === 'manager' ? (j.managerName?.split(' ')[0] ?? 'your manager') : (j.buddyName?.split(' ')[0] ?? 'your buddy')}’s list${due(team.due)}. You don’t need to do anything.`, citations: [] }
+  const todo = p.todo.find((t) => mentions(t.title))
+  if (todo) return { text: `That’s one for you: “${todo.title}”${due(todo.due)}. You can do it from the Today tab.`, citations: [] }
+  return undefined
 }
 
 const rules: Rule[] = [
@@ -51,6 +82,11 @@ const rules: Rule[] = [
       citations: [],
       route: 'buddy',
     }),
+  },
+  // Questions about their own journey come after the things we must never answer, before the general policy answers.
+  {
+    test: /\b(what['’]?s (left|next|outstanding)|what (do|should|can) i (need to )?(do|be doing)|to-?do|before i start|this week)\b|\b(why|when|how long|where)\b.*\b(laptop|kit|headset|device|badge|pass|access|goals|welcome pack|pay|pension|benefits?|locked|unlock|available|ordered)\b/i,
+    answer: aboutMyJourney,
   },
   {
     test: /\b(work(ing)? from home|wfh|remote|hybrid|office days?|in the office)\b/i,
@@ -135,8 +171,10 @@ const rules: Rule[] = [
 ]
 
 export function scriptedAnswer(question: string, joiner: JoinerContext): ScriptedAnswer {
-  const rule = rules.find((r) => r.test.test(question))
-  if (rule) return rule.answer(joiner)
+  for (const rule of rules) {
+    const answer = rule.test.test(question) ? rule.answer(joiner, question) : undefined
+    if (answer) return answer
+  }
   return {
     text: 'I’m not sure about that one, and I’d rather not guess. Let me connect you with HR Direct, who can give you a proper answer.',
     citations: [],

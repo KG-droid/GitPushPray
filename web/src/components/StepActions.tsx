@@ -8,6 +8,10 @@ import { formatShortDate } from '../domain/dates'
 import type { StepView } from '../domain/journey'
 import { joinPicks, parsePicks, pickedLabels, togglePick } from '../domain/equipment'
 import { laptopOrder } from '../domain/laptop'
+import { PULSE_STEP_IDS } from '../domain/pulse'
+import { Day30Celebration } from './Day30Celebration'
+import { PulseForm } from './PulseForm'
+import { NO_HEADSET } from '../data/catalogue'
 
 /**
  * The interactive part of a step: choice options and a done button when available,
@@ -43,9 +47,15 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
             {step.doneAt && ` · ${formatShortDate(step.doneAt)}`}
           </Typography>
         </Stack>
+        {step.id === 'day-30-checkin' && <Day30Celebration />}
         {step.id === 'accessibility-needs' && step.value === 'yes' && (
           <Typography variant="body2" color="text.secondary">
             Your manager will get in contact with you as soon as they are able, to talk it through.
+          </Typography>
+        )}
+        {step.id === 'choose-headset' && step.value === NO_HEADSET && (
+          <Typography variant="body2" color="text.secondary">
+            No problem. Your laptop has a built-in microphone and speakers for calls, and you can ask the IT service desk for a headset at any time.
           </Typography>
         )}
         {step.doneBy === 'manager' && step.owner === 'joiner' ? (
@@ -94,6 +104,8 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
       </Stack>
     )
   }
+
+  if (PULSE_STEP_IDS.includes(step.id)) return <PulseForm stepId={step.id} />
 
   const finish = () => {
     completeStep(step.id, { value: choice })

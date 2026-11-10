@@ -171,3 +171,24 @@ describe('new line manager journey', () => {
     expect(step(journey('nia', '2026-12-14'), 'pm-first-one-to-ones')?.state).toBe('available')
   })
 })
+
+describe('next action once the joiner has started', () => {
+  it('before Day 1 it is the earliest unfinished step', () => {
+    expect(journey('priya', '2026-11-09').nextAction?.id).toBe('accessibility-needs')
+  })
+
+  it('on Day 1 it is the Day 1 plan, even with older steps still open', () => {
+    expect(journey('priya', '2026-12-07').nextAction?.id).toBe('day-one-plan')
+  })
+
+  it('after Day 1 it is something from the first weeks, not a leftover from before starting', () => {
+    const next = journey('priya', '2026-12-08').nextAction
+    expect(next?.stage).toBe('week-one')
+    expect(next?.id).not.toBe('day-one-plan')
+  })
+
+  it('falls back to a leftover from before Day 1 when nothing else is waiting', () => {
+    const j = journey('aisha', '2026-10-13') // day 2 of a graduate whose earlier steps are all done
+    expect(j.nextAction?.stage).not.toBe('offer')
+  })
+})

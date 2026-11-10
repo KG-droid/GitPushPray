@@ -366,6 +366,7 @@ function buildSeedEvents(): JourneyEvent[] {
     ['pay-and-pension', 'joiner', '2026-11-06'],
     ['mgr-request-access', 'manager', '2026-11-06'],
     ['mgr-request-badge', 'manager', '2026-11-06'],
+    ['mgr-plan-week-one', 'manager', '2026-11-06'],
     ['say-hello', 'joiner', '2026-10-29'],
   ] as const) {
     done('jordan', at, stepId, by, value)
@@ -397,6 +398,7 @@ function buildSeedEvents(): JourneyEvent[] {
     ['choose-benefits', 'joiner', '2026-10-14', 'cycle-to-work'],
     ['mgr-set-goals', 'manager', '2026-11-02'],
     ['mgr-request-access', 'manager', '2026-11-03'],
+    ['mgr-plan-week-one', 'manager', '2026-11-03'],
     ['pay-and-pension', 'joiner', '2026-11-03'],
     ['say-hello', 'joiner', '2026-10-21'],
   ] as const) {

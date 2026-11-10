@@ -6,6 +6,7 @@ import LightbulbRounded from '@mui/icons-material/LightbulbRounded'
 import LockRounded from '@mui/icons-material/LockRounded'
 import PriorityHighRounded from '@mui/icons-material/PriorityHighRounded'
 import ScheduleRounded from '@mui/icons-material/ScheduleRounded'
+import { GlossaryText } from '../../components/GlossaryText'
 import CelebrationRounded from '@mui/icons-material/CelebrationRounded'
 import { useNavigate } from 'react-router-dom'
 import { useDemo } from '../../demo/useDemo'
@@ -107,7 +108,7 @@ function CheckItem({ check, today }: { check: CheckView; today: string }) {
           <Chip size="small" label={meta.label} color={meta.color} variant={check.status === 'cleared' ? 'filled' : 'outlined'} />
         </Stack>
         <Typography variant="body2" color="text.secondary">
-          {check.explainer}
+          <GlossaryText text={check.explainer} />
         </Typography>
 
         {open && (

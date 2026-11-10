@@ -56,6 +56,7 @@ All names, people and policies are fictional.
 - **J4 Choices:** laptop (by job family: the manager sets the spec, standard or developer, then the joiner picks a Surface Pro, Surface Laptop or HP EliteBook G11), benefits, pay and rewards (salary sacrifice options, pension), and learning picks. These are cards with a selected state. Making a choice raises an event, e.g. kit chosen → a "device ordered" step appears on the manager's list.
 - **J5 Unlocked content:** a feed of content filtered by persona, such as location guides (site, transport, community), team handbook and software guides. Each item has an "Unlocked because…" chip.
 - **J6 Day 1 to Week 1:** guided prompts: book stakeholder intros (one-tap suggested slots), start mandatory training (with progress), join comms channels, and the week-1 1:1 with the manager.
+- **J6a Day 1 plan** (`/journey/day-one`): who meets you and where, the hour-by-hour day, and three things to sort in advance. **Choose your desk** (the one next to your buddy or manager is already held, or swap it for a window or quiet-zone desk; hybrid office roles only), **Plan your journey** (pick train, bus, cycle or car and get the last leg to the front door and a time to be there by) and **Finding your way** (door-to-desk directions and handy places). Desks, routes and directions are example data for the demo.
 - **J7 Day-30 check-in:** a two-question pulse ("I know who to ask", "I feel confident in my role"), the connection signals so far, and a celebration screen.
 
 ### People tab (meet before you meet)
@@ -70,6 +71,17 @@ All names, people and policies are fictional.
 - **M2 Joiner detail – what's left:** a checklist of checks, buddy, device, access, ID badge and 3-month goals. Completing an item raises an event. **Setting goals sends the welcome pack**, and the joiner app updates live (the "chain reactions" prompt).
 - **M3 Just-in-time nudges:** cards based on the Google research ("Priya starts Monday: here are 5 things that matter most"), plus cover handling: "Going on leave? Hand over to a deputy."
 - **M4 Day-30 signal:** the joiner's pulse trend and buddy meeting count, with suggested actions if they're quietly struggling. The manager sees signals, not private chat content.
+
+### System access: one request, many owners
+New colleagues need access to many systems that are each run by a different team (Entra, Teams, GitHub, Jira, Confluence, line-of-business applications). We don't replace those teams' approvals. We put one front door on them.
+
+- **The manager asks once (M2).** They start from a role profile or copy a teammate, see what the team already has, adjust and submit. This unlocks only when vetting has cleared.
+- **The request fans out.** Each item goes to the owner of its system by that system's own route: role-profile groups are automatic, team and project owners approve theirs, and applications go through the service desk to the application owner.
+- **The manager sees the detail, the joiner sees progress.** The manager's task shows each system, who approves it and its status: With approver, Being set up, After training or Ready. The joiner's "Your system access" page (`/journey/access`) shows only how much is ready, how much is in progress and what waits for training, because system and group names mean little to someone who hasn't started.
+- **It's honest about what isn't Day 1.** Some access only switches on after training (telephony, cash handling, customer data). Anything not expected until after Day 1 is flagged to the manager, with the owner to chase.
+- **The joiner chases nobody.** One sign-in on Day 1 opens everything that's ready, and anything missing goes back through the manager's single request.
+
+Simulated for the demo: owners and lead times are illustrative, and status moves with the demo date. In real use each status would come from the owning system (for example Entra access packages, the GitHub and Jira APIs, and service desk tickets).
 
 ## 5. Buddy view
 - **B1 My buddy:** the joiner's profile, why they were matched (shared interests, location, role), and what the buddy can and can't see.
