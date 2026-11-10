@@ -1,8 +1,9 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Alert, Avatar, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
 import CameraAltRounded from '@mui/icons-material/CameraAltRounded'
 import CheckRounded from '@mui/icons-material/CheckRounded'
 import ReplayRounded from '@mui/icons-material/ReplayRounded'
+import UploadRounded from '@mui/icons-material/UploadRounded'
 import { useDemo } from '../../demo/useDemo'
 
 /**
@@ -21,6 +22,19 @@ export function IdPhotoCard() {
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const canUseCamera = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
+
+  const holdPhoto = (file: Blob) => {
+    if (heldPhotoUrl) URL.revokeObjectURL(heldPhotoUrl)
+    heldPhotoUrl = URL.createObjectURL(file)
+    setError(null)
+    setPhotoUrl(heldPhotoUrl)
+    if (photoStep?.state === 'available') completeStep('id-photo')
+  }
+
   const onPick = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
@@ -29,18 +43,64 @@ export function IdPhotoCard() {
       setError('That doesn’t look like a photo. Please try again.')
       return
     }
-    if (heldPhotoUrl) URL.revokeObjectURL(heldPhotoUrl)
-    heldPhotoUrl = URL.createObjectURL(file)
-    setError(null)
-    setPhotoUrl(heldPhotoUrl)
-    if (photoStep?.state === 'available') completeStep('id-photo')
+    holdPhoto(file)
+  }
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop())
+    streamRef.current = null
+    setCameraOpen(false)
+  }
+
+  // Stop the camera if the card goes away while it is still on.
+  useEffect(() => () => streamRef.current?.getTracks().forEach((t) => t.stop()), [])
+
+  const openCamera = async () => {
+    if (!canUseCamera) {
+      inputRef.current?.click()
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      streamRef.current = stream
+      setError(null)
+      setCameraOpen(true)
+    } catch {
+      setError('We couldn’t open your camera. Check that you’ve allowed camera access, or upload a photo instead.')
+    }
+  }
+
+  // Attach the stream once the video element has rendered.
+  useEffect(() => {
+    if (cameraOpen && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      void videoRef.current.play().catch(() => undefined)
+    }
+  }, [cameraOpen])
+
+  const snap = () => {
+    const video = videoRef.current
+    if (!video || !video.videoWidth) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext('2d')?.drawImage(video, 0, 0)
+    canvas.toBlob(
+      (blob) => {
+        if (blob) holdPhoto(blob)
+        else setError('Something went wrong taking the photo. Please try again.')
+        stopCamera()
+      },
+      'image/jpeg',
+      0.92,
+    )
   }
 
   const retake = () => {
     if (heldPhotoUrl) URL.revokeObjectURL(heldPhotoUrl)
     heldPhotoUrl = null
     setPhotoUrl(null)
-    inputRef.current?.click()
+    void openCamera()
   }
 
   return (
@@ -82,31 +142,55 @@ export function IdPhotoCard() {
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="user"
           hidden
           onChange={onPick}
           data-testid="id-photo-input"
-          aria-label="Take or choose a photo of your face"
+          aria-label="Choose a photo of your face"
         />
-        <Stack direction="row" spacing={1} sx={{ mt: 1.75, alignItems: 'center' }}>
-          {added ? (
-            <>
-              <Button variant="outlined" startIcon={<ReplayRounded />} onClick={retake}>
-                Retake photo
+
+        {cameraOpen && (
+          <Box sx={{ mt: 1.75 }}>
+            <Box
+              component="video"
+              ref={videoRef}
+              muted
+              playsInline
+              aria-label="Camera preview"
+              sx={{ width: '100%', maxHeight: 320, borderRadius: 2, bgcolor: 'common.black', transform: 'scaleX(-1)', objectFit: 'cover' }}
+            />
+            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <Button variant="contained" startIcon={<CameraAltRounded />} onClick={snap}>
+                Capture
               </Button>
+              <Button variant="text" onClick={stopCamera}>
+                Cancel
+              </Button>
+            </Stack>
+          </Box>
+        )}
+
+        {!cameraOpen && (
+          <Stack direction="row" spacing={1} sx={{ mt: 1.75, alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+            <Button
+              variant={added ? 'outlined' : 'contained'}
+              startIcon={added ? <ReplayRounded /> : <CameraAltRounded />}
+              onClick={added ? retake : () => void openCamera()}
+            >
+              {added ? 'Retake photo' : 'Take photo'}
+            </Button>
+            <Button variant="outlined" startIcon={<UploadRounded />} onClick={() => inputRef.current?.click()}>
+              Upload photo
+            </Button>
+            {added && (
               <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'primary.main' }}>
                 <CheckRounded fontSize="small" />
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   Photo added
                 </Typography>
               </Stack>
-            </>
-          ) : (
-            <Button variant="contained" startIcon={<CameraAltRounded />} onClick={() => inputRef.current?.click()}>
-              Take photo
-            </Button>
-          )}
-        </Stack>
+            )}
+          </Stack>
+        )}
 
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
           Your photo is only used for your ID badge. This demo keeps it on your device for this visit and doesn’t save it.
