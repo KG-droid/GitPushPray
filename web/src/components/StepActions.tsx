@@ -99,7 +99,15 @@ export function StepActions({ step, onDone, inline = false }: { step: StepView; 
   if (step.href && !inline) {
     return (
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
-        <Button variant="contained" onClick={() => { onDone?.(); navigate(step.href!) }}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            // Opening a read-only page is all there is to do, so it counts as read and leaves "Your next step".
+            if (step.kind === 'content' && step.state === 'available') completeStep(step.id)
+            onDone?.()
+            navigate(step.href!)
+          }}
+        >
           {step.hrefLabel ?? 'Open'}
         </Button>
         {step.minutes && <Chip size="small" label={`${step.minutes} min`} />}
