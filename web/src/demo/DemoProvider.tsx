@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { repository } from '../data/repository'
 import { addDays, toIsoDate } from '../domain/dates'
-import { buildJourney, type JourneyView } from '../domain/journey'
+import { buildJourney, hasHappened, type JourneyView } from '../domain/journey'
 import { cannedReply } from '../data/people'
 import { classifyTopic, cleanText, type FeedbackResponse } from '../domain/feedback'
 import type {
@@ -82,7 +82,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const chats = useMemo(() => {
     const byPerson: Record<string, ChatEntry[]> = {}
     for (const e of repository.listEvents(persona.id)) {
-      if (e.type !== 'chat_message' || e.at.slice(0, 10) > today) continue
+      if (e.type !== 'chat_message' || !hasHappened(e, today)) continue
       const p = e.payload as unknown as ChatMessagePayload
       ;(byPerson[p.withId] ??= []).push({ id: e.id, from: p.from, text: p.text, at: e.at })
     }
