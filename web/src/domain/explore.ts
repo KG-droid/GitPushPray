@@ -2,7 +2,6 @@ import { GOAL_SEPARATOR } from '../data/goals'
 import {
   OTHER_BENEFITS_VALUE,
   bankPensionRate,
-  flexibleBenefitValue,
   orgPriorities,
   salaries,
   teamGoals,
@@ -40,7 +39,7 @@ export function goalCascade(journey: JourneyView): GoalCascade {
 }
 
 export interface RewardPart {
-  id: 'salary' | 'pension' | 'flexible' | 'other'
+  id: 'salary' | 'pension' | 'other'
   label: string
   amount: number
 }
@@ -60,14 +59,10 @@ export function totalReward(journey: JourneyView, employeePercent: number): Tota
   const salary = salaries[journey.persona.id] ?? 30_000
   const bankPercent = bankPensionRate(employeePercent)
   const pension = Math.round((salary * bankPercent) / 100)
-  const choice = journey.steps.find((s) => s.id === 'choose-benefits' && s.state === 'done')?.value
-  const flexible =
-    choice === 'extra-leave' ? Math.round((salary / 260) * 5) : choice ? (flexibleBenefitValue[choice] ?? 0) : 0
-
+  // Benefits interest isn't a selection, so it doesn't add to the total until they choose after starting.
   const parts: RewardPart[] = [
     { id: 'salary', label: 'Salary', amount: salary },
     { id: 'pension', label: 'Bank pension contribution', amount: pension },
-    { id: 'flexible', label: 'Your flexible benefit', amount: flexible },
     { id: 'other', label: 'Wellbeing, discounts and more', amount: OTHER_BENEFITS_VALUE },
   ]
   return {

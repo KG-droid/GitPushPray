@@ -437,14 +437,6 @@ export const benefitCategories: BenefitCategory[] = [
   },
 ]
 
-/** Rough annual value of each flexible benefit choice, for the reward summary (illustrative). */
-export const flexibleBenefitValue: Record<string, number> = {
-  'private-medical': 1_200,
-  'cycle-to-work': 350,
-  'travel-loan': 150,
-  'extra-leave': 0, // valued from salary below
-}
-
 /** Other benefits everyone gets (wellbeing, discounts, EAP), as a rough annual value (illustrative). */
 export const OTHER_BENEFITS_VALUE = 600
 

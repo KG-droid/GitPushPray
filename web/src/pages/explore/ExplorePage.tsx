@@ -71,7 +71,7 @@ export function ExplorePage() {
         <HubCard
           icon={<FavoriteRounded color="primary" />}
           title="Benefits and reward"
-          body={benefitChosen ? 'Your choices, your pension and your total reward' : 'Choose your flexible benefit, set up your pension and see your total reward'}
+          body={benefitChosen ? 'Your interests, your pension and your total reward' : 'Tell us which benefits interest you, set up your pension and see your total reward'}
           onClick={() => navigate('/explore/benefits')}
           highlight={!benefitChosen}
         />

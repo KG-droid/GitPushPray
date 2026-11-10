@@ -1,7 +1,7 @@
 import { daysUntil } from './dates'
 import { handoversTo, type HandoverItem } from './handover'
 import { quietSignal, type QuietSignal } from './risk'
-import { managerEquipmentSummary, pickedOptions, NO_EQUIPMENT } from './equipment'
+import { managerEquipmentSummary, pickedLabels, pickedOptions, NO_EQUIPMENT } from './equipment'
 import type { JourneyView, StepView } from './journey'
 import { laptopLabel, laptopOrder } from './laptop'
 import type { JourneyEvent, PulsePayload } from './types'
@@ -26,7 +26,7 @@ export interface ManagerJoinerView {
   /** Joiner progress on their own tasks and choices */
   joinerDone: number
   joinerTotal: number
-  /** Only the choices a manager needs to act on (e.g. kit to approve). Benefits stay private. */
+  /** Only the choices a manager needs to act on (e.g. kit to approve), plus which benefits they are interested in. */
   sharedChoices: { label: string; value: string }[]
   startDateMoved?: { from: string; to: string }
   /** Questions the joiner chose to send to their manager from the assistant, newest first */
@@ -46,6 +46,7 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
   const kitLabel = laptopLabel(laptopOrder(journey))
   const equipment = journey.steps.find((s) => s.id === 'choose-equipment')
   const headset = journey.steps.find((s) => s.id === 'choose-headset')
+  const interest = journey.steps.find((s) => s.id === 'choose-benefits')
   const moved = journey.notices.find((n) => n.kind === 'start-date-moved')
 
   const status: JoinerStatus =
@@ -79,6 +80,8 @@ export function managerView(journey: JourneyView, events: JourneyEvent[] = []): 
           ? agreedEquipment(equipment)
           : managerEquipmentSummary(equipment)
         : []),
+      // Interest only, shared on purpose so the manager can raise it in their first conversations. Nothing is enrolled yet.
+      ...(interest?.state === 'done' && pickedLabels(interest) ? [{ label: 'Benefits interest', value: pickedLabels(interest) }] : []),
     ],
     startDateMoved: moved && moved.kind === 'start-date-moved' ? { from: moved.from, to: moved.to } : undefined,
     pulse: pulseTrend(events, journey),

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test/renderApp'
@@ -15,21 +15,24 @@ describe('Explore tab', () => {
     expect(screen.getByText(/Daniel is setting your first goals/)).toBeInTheDocument()
   })
 
-  it('moves the benefit choice here: the journey step signposts to Benefits', async () => {
+  it('keeps the benefits interest off Today and the journey, and lets you pick several in Explore', async () => {
     const user = userEvent.setup()
+    renderApp('/today')
+    expect(screen.queryByText('Tell us which benefits interest you')).not.toBeInTheDocument()
+    cleanup()
+
     renderApp('/journey')
+    expect(screen.queryByText('Tell us which benefits interest you')).not.toBeInTheDocument()
+    cleanup()
 
-    await user.click(screen.getByText('Pick your flexible benefit'))
-    const sheet = await screen.findByRole('dialog', { name: 'Pick your flexible benefit' })
-    await user.click(within(sheet).getByRole('button', { name: 'Choose in Benefits' }))
-
-    expect(await screen.findByRole('heading', { name: 'Benefits and reward' })).toBeInTheDocument()
-    const choices = screen.getByRole('region', { name: 'Your choices' })
-    await user.click(within(choices).getByRole('radio', { name: /Cycle to work/ }))
-    await user.click(within(choices).getByRole('button', { name: 'Confirm choice' }))
-    expect(await within(choices).findByText(/You chose: Cycle to work/)).toBeInTheDocument()
-    // The reward summary picks the choice up.
-    expect(within(screen.getByRole('list', { name: 'Total reward breakdown' })).getByText('£350')).toBeInTheDocument()
+    renderApp('/explore/benefits')
+    const interests = screen.getByRole('region', { name: 'Your interests' })
+    await user.click(within(interests).getByRole('checkbox', { name: /Cycle to work/ }))
+    await user.click(within(interests).getByRole('checkbox', { name: /Season ticket loan/ }))
+    await user.click(within(interests).getByRole('button', { name: 'Confirm choice' }))
+    expect(await within(interests).findByText(/Your interest: Cycle to work, Season ticket loan/)).toBeInTheDocument()
+    // Interest is not a selection, so the reward total has no flexible benefit line.
+    expect(within(screen.getByRole('list', { name: 'Total reward breakdown' })).queryByText(/flexible/i)).not.toBeInTheDocument()
   })
 
   it('lets a cleared joiner set up pay with their chosen pension', async () => {

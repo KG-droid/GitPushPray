@@ -192,7 +192,7 @@ export function ManagerJoinerPage() {
             <Stack direction="row" spacing={1} sx={{ mt: 1.5, color: 'text.secondary', alignItems: 'flex-start' }}>
               <VisibilityOffRounded sx={{ fontSize: 16, mt: 0.25 }} />
               <Typography variant="caption">
-                Private to {p.firstName}: check results, benefit choices, chats with their buddy and questions to the assistant, unless they choose to send you one.
+                Private to {p.firstName}: check results, pay and pension, chats with their buddy and questions to the assistant, unless they choose to send you one.
               </Typography>
             </Stack>
           </CardContent>

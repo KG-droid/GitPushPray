@@ -43,23 +43,11 @@ describe('pension and reward', () => {
     expect(bankPensionRate(10)).toBe(15)
   })
 
-  it('adds up the joiner’s total reward, including their flexible benefit', () => {
-    const r = totalReward(journey('margaret', '2026-11-09'), 6) // chose private medical
+  it('adds up the joiner’s total reward, ignoring benefits interest', () => {
+    const r = totalReward(journey('margaret', '2026-11-09'), 6) // registered interest in private medical
     expect(r.salary).toBe(165_000)
     expect(r.parts.find((p) => p.id === 'pension')?.amount).toBe(24_750)
-    expect(r.parts.find((p) => p.id === 'flexible')?.amount).toBe(1_200)
-    expect(r.total).toBe(165_000 + 24_750 + 1_200 + 600)
+    expect(r.total).toBe(165_000 + 24_750 + 600)
     expect(r.monthly).toEqual({ you: 825, bank: 2063 })
-  })
-
-  it('values bought leave from salary, and counts nothing for an unchosen benefit', () => {
-    expect(totalReward(journey('priya', '2026-11-09'), 6).parts.find((p) => p.id === 'flexible')?.amount).toBe(0)
-    const r = totalReward(
-      journey('priya', '2026-11-09', [
-        { type: 'step_completed', at: '2026-11-09T10:00:00Z', payload: { stepId: 'choose-benefits', value: 'extra-leave' } },
-      ]),
-      6,
-    )
-    expect(r.parts.find((p) => p.id === 'flexible')?.amount).toBe(1000) // 52,000 / 260 days × 5
   })
 })

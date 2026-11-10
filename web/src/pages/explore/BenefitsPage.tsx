@@ -29,7 +29,6 @@ import { SubPageHeader } from './SubPageHeader'
 const partColors: Record<RewardPart['id'], { light: string; dark: string }> = {
   salary: { light: '#2a78d6', dark: '#3987e5' },
   pension: { light: '#eb6834', dark: '#d95926' },
-  flexible: { light: '#1baf7a', dark: '#199e70' },
   other: { light: '#eda100', dark: '#c98500' },
 }
 
@@ -44,12 +43,12 @@ export function BenefitsPage() {
 
   return (
     <Stack spacing={2.5} sx={{ pt: 1 }}>
-      <SubPageHeader title="Benefits and reward" subtitle="Your choices, your pension and everything you get" />
+      <SubPageHeader title="Benefits and reward" subtitle="Your interests, your pension and everything you get" />
 
       {/* ── My choices ───────────────────────── */}
-      <Box component="section" aria-label="Your choices">
+      <Box component="section" aria-label="Your interests">
         <Typography variant="overline" color="text.secondary">
-          Your choices
+          Your interests
         </Typography>
         <Stack spacing={1.25}>
           {flexStep && (

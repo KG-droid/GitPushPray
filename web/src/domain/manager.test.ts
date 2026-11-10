@@ -33,10 +33,12 @@ describe('managerView', () => {
     expect(v.urgent.map((t) => t.id)).toContain('mgr-request-badge')
   })
 
-  it('shares the laptop choice but keeps benefits private', () => {
+  it('shares the laptop choice and which benefits the joiner is interested in', () => {
     const v = view('margaret', '2026-11-09')
-    expect(v.sharedChoices).toEqual([{ label: 'Laptop', value: 'Surface Laptop, Standard spec' }])
-    expect(JSON.stringify(v.sharedChoices)).not.toMatch(/medical/i)
+    expect(v.sharedChoices).toEqual([
+      { label: 'Laptop', value: 'Surface Laptop, Standard spec' },
+      { label: 'Benefits interest', value: 'Private medical cover' },
+    ])
   })
 
   it('shows a pulse trend only once there are at least two check-ins', () => {
