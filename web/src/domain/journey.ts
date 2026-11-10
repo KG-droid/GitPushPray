@@ -97,13 +97,36 @@ export interface JourneyInput {
  * stays put, so jumping back in time doesn't lose a manager's laptop choices or anyone else's selections.
  */
 export function hasHappened(e: JourneyEvent, today: string): boolean {
-  return e.id.startsWith('evt-') || e.at.slice(0, 10) <= today
+  return isLive(e) || e.at.slice(0, 10) <= today
+}
+
+const isLive = (e: JourneyEvent) => e.id.startsWith('evt-')
+
+/** When a live event was really made, from its id (evt-<ms>-<random>). */
+const madeAt = (e: JourneyEvent) => Number(e.id.split('-')[1]) || 0
+
+/**
+ * Seeded history in date order, then live events in the order they were made. Live events are dated on the
+ * demo day they happened, which can go backwards after time travel, so each is moved just after the one before
+ * it. Otherwise an old choice would outrank a newer one and selections would look stuck.
+ */
+function inOrder(events: JourneyEvent[]): JourneyEvent[] {
+  const seeded = events.filter((e) => !isLive(e)).sort((a, b) => a.at.localeCompare(b.at))
+  const live = events.filter(isLive).sort((a, b) => madeAt(a) - madeAt(b) || a.id.localeCompare(b.id))
+  let last = seeded.at(-1)?.at ?? ''
+  const ordered = live.map((e) => {
+    if (e.at > last) {
+      last = e.at
+      return e
+    }
+    last = last ? new Date(Date.parse(last) + 1).toISOString() : e.at
+    return { ...e, at: last }
+  })
+  return [...seeded, ...ordered]
 }
 
 export function buildJourney({ persona, events, today, steps, checks }: JourneyInput): JourneyView {
-  const past = events
-    .filter((e) => e.personaId === persona.id && hasHappened(e, today))
-    .sort((a, b) => a.at.localeCompare(b.at))
+  const past = inOrder(events.filter((e) => e.personaId === persona.id && hasHappened(e, today)))
 
   const startDate = currentStartDate(persona, past)
   const daysToStart = daysUntil(startDate, today)

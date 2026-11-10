@@ -35,7 +35,7 @@ describe('laptop spec and model', () => {
     expect(before?.state).toBe('locked')
     expect(before?.lockedHint).toMatch(/manager has set your laptop spec/)
 
-    const answered = [...seedEvents, completed('priya', '2026-11-09', 'accessibility-needs', 'no')]
+    const answered = [...seedEvents, event('priya', '2026-11-02', 'step_completed', { stepId: 'mgr-set-device-spec', by: 'manager', value: 'developer' }), completed('priya', '2026-11-09', 'accessibility-needs', 'no')]
     const after = journey('priya', '2026-11-09', answered).steps.find((s) => s.id === 'choose-kit')
     expect(after?.state).toBe('available')
   })
@@ -61,6 +61,7 @@ describe('laptop spec and model', () => {
   it('records what the manager agreed as the joiner’s own choices', () => {
     const agreed = [
       ...seedEvents,
+      event('priya', '2026-11-02', 'step_completed', { stepId: 'mgr-set-device-spec', by: 'manager', value: 'developer' }),
       completed('priya', '2026-11-09', 'accessibility-needs', 'yes'),
       event('priya', '2026-11-10', 'step_completed', { stepId: 'choose-kit', by: 'manager', value: 'surface-pro' }),
       event('priya', '2026-11-10', 'step_completed', { stepId: 'choose-headset', by: 'manager', value: 'poly-voyager-focus-2' }),

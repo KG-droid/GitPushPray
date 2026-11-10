@@ -353,10 +353,9 @@ function buildSeedEvents(): JourneyEvent[] {
     done(personaId, at, 'mgr-send-welcome-pack', 'manager')
   }
 
-  // Priya: buddy assigned, has picked a learning bite. Goals not set yet.
+  // Priya: buddy assigned, has picked a learning bite. Goals and laptop options not set yet, so Reset leaves them for the manager.
   done('priya', '2026-11-02', 'mgr-assign-buddy', 'manager')
   done('priya', '2026-10-24', 'learning-picks', 'joiner', 'banking-101')
-  done('priya', '2026-11-02', 'mgr-set-device-spec', 'manager', 'developer')
 
   // Rhys: buddy assigned, benefits picked.
   done('rhys', '2026-11-03', 'mgr-assign-buddy', 'manager')

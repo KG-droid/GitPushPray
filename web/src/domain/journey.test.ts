@@ -131,6 +131,24 @@ describe('unlocking ("earned, not withheld")', () => {
     expect(laptopOrder(j).recommended).toBe('macbook-pro')
   })
 
+  it('lets a choice made after jumping back replace one made on a later date', () => {
+    const spec = (id: string, at: string, value: string): JourneyEvent => ({
+      id,
+      personaId: 'priya',
+      type: 'step_completed',
+      at,
+      payload: { stepId: 'mgr-set-device-spec', by: 'manager', value },
+    })
+    const events = [
+      ...seedEvents,
+      spec('evt-1000-a', '2026-11-09T11:00:00Z', 'standard'),
+      // Made later in real time, but on an earlier demo date.
+      spec('evt-2000-b', '2026-11-01T11:00:00Z', 'developer'),
+    ]
+    const j = buildJourney({ persona: persona('priya'), events, today: '2026-11-01', steps: stepCatalogue, checks: checkCatalogue })
+    expect(laptopOrder(j).spec?.value).toBe('developer')
+  })
+
   it('evaluates combined rules', () => {
     const ctx = { daysToStart: 5, isCleared: () => true, isDone: () => false, valueOf: () => undefined }
     expect(evaluate({ type: 'all', rules: [{ type: 'daysToStart', atMost: 7 }, { type: 'checksCleared', checks: 'all' }] }, ctx)).toBe(true)

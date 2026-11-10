@@ -18,6 +18,9 @@ describe('Journey tab', () => {
   it('lets the joiner make a choice from the step sheet and tells them what it set off', async () => {
     const user = userEvent.setup()
     renderApp('/journey')
+    act(() => {
+      repository.addEvent({ personaId: 'priya', type: 'step_completed', at: '2026-11-02T09:00:00Z', payload: { stepId: 'mgr-set-device-spec', value: 'developer', by: 'manager' } })
+    })
 
     await user.click(screen.getByText('Do you have any accessibility requirements?'))
     const question = await screen.findByRole('dialog', { name: 'Do you have any accessibility requirements?' })

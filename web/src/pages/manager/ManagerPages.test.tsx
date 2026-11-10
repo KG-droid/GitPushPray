@@ -51,6 +51,9 @@ describe('Manager view', () => {
   it('lets the manager change the spec before the deadline, but not after', async () => {
     const user = userEvent.setup()
     renderApp('/manager/joiner/priya', { role: 'manager' })
+    act(() => {
+      repository.addEvent({ personaId: 'priya', type: 'step_completed', at: '2026-11-02T09:00:00Z', payload: { stepId: 'mgr-set-device-spec', value: 'developer', by: 'manager' } })
+    })
 
     await user.click(screen.getByText('Set their laptop spec'))
     const sheet = await screen.findByRole('dialog', { name: 'Set their laptop spec' })

@@ -43,7 +43,10 @@ describe('managerView', () => {
   })
 
   it('says a joiner is waiting on checks without exposing which check', () => {
-    const v = view('priya', '2026-11-09')
+    // Once the manager has set the laptop spec, nothing is left for them but the checks.
+    const v = view('priya', '2026-11-09', [
+      { type: 'step_completed', at: '2026-11-02T09:00:00Z', payload: { stepId: 'mgr-set-device-spec', by: 'manager', value: 'developer' } },
+    ])
     expect(v.status).toBe('waiting-on-checks')
     expect(v.vetting).toEqual({ cleared: false, expectedBy: '2026-11-17', delayed: false })
     expect(Object.keys(v.vetting)).not.toContain('checks')
