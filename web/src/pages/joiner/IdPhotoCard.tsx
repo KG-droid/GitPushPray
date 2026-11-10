@@ -3,6 +3,7 @@ import { Alert, Avatar, Box, Button, Card, CardContent, Stack, Typography } from
 import CameraAltRounded from '@mui/icons-material/CameraAltRounded'
 import CheckRounded from '@mui/icons-material/CheckRounded'
 import ReplayRounded from '@mui/icons-material/ReplayRounded'
+import { useDemo } from '../../demo/useDemo'
 
 /**
  * The photo is a face image, so it is only held in memory for this visit and never saved to the
@@ -12,7 +13,11 @@ let heldPhotoUrl: string | null = null
 
 /** Take a photo of your face for the ID badge used the first time you come into the office. */
 export function IdPhotoCard() {
+  const { journey, completeStep } = useDemo()
+  const photoStep = journey.steps.find((s) => s.id === 'id-photo')
   const [photoUrl, setPhotoUrl] = useState<string | null>(heldPhotoUrl)
+  // Only the fact that a photo was added is recorded, never the image, so a reload keeps the step done.
+  const added = !!photoUrl || photoStep?.state === 'done'
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -28,6 +33,7 @@ export function IdPhotoCard() {
     heldPhotoUrl = URL.createObjectURL(file)
     setError(null)
     setPhotoUrl(heldPhotoUrl)
+    if (photoStep?.state === 'available') completeStep('id-photo')
   }
 
   const retake = () => {
@@ -53,14 +59,14 @@ export function IdPhotoCard() {
               Photo for your ID badge
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {photoUrl
+              {added
                 ? 'Looks good. Your badge will be printed and waiting for you the first time you come into the office.'
                 : 'Take a quick photo of your face so your badge is ready when you first arrive. It takes a minute.'}
             </Typography>
           </Box>
         </Stack>
 
-        {!photoUrl && (
+        {!added && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
             Face the camera in good light, with a plain background. No hats or sunglasses, and keep your face fully visible.
           </Typography>
@@ -83,7 +89,7 @@ export function IdPhotoCard() {
           aria-label="Take or choose a photo of your face"
         />
         <Stack direction="row" spacing={1} sx={{ mt: 1.75, alignItems: 'center' }}>
-          {photoUrl ? (
+          {added ? (
             <>
               <Button variant="outlined" startIcon={<ReplayRounded />} onClick={retake}>
                 Retake photo

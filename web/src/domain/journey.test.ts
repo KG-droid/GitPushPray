@@ -16,6 +16,21 @@ function journey(id: string, today: string, extra: Omit<JourneyEvent, 'id' | 'pe
 
 const step = (j: ReturnType<typeof journey>, id: string) => j.steps.find((s) => s.id === id)
 
+describe('ID badge photo', () => {
+  it('opens two weeks before the start date and becomes a next step', () => {
+    // Priya starts 7 Dec, so the photo opens on 23 Nov.
+    expect(step(journey('priya', '2026-11-22'), 'id-photo')?.state).toBe('locked')
+    const open = journey('priya', '2026-11-23')
+    expect(step(open, 'id-photo')?.state).toBe('available')
+    // Only the badge photo is waiting once the earlier steps are done.
+    const answered = journey('priya', '2026-11-23', [
+      { type: 'step_completed', at: '2026-11-23T09:00:00Z', payload: { stepId: 'id-photo' } },
+    ])
+    expect(step(answered, 'id-photo')?.state).toBe('done')
+    expect(answered.nextAction?.id).not.toBe('id-photo')
+  })
+})
+
 describe('vetting checks', () => {
   it('progress with time, from not started to cleared', () => {
     const atOffer = journey('priya', '2026-10-19')

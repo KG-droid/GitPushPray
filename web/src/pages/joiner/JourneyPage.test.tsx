@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react'
+import { act, cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { repository } from '../../data/repository'
@@ -51,6 +51,18 @@ describe('Journey tab', () => {
     ])
     expect(within(sheet).getByRole('radio', { name: /Apple MacBook Pro/ })).toHaveTextContent('Recommended')
     expect(within(sheet).getByText(/Your manager recommends the Apple MacBook Pro/)).toBeInTheDocument()
+  })
+
+  it('asks for the ID badge photo on Today once it is two weeks to Day 1', async () => {
+    const user = userEvent.setup()
+    renderApp('/today', { personaId: 'rhys', today: '2026-11-08' }) // starts 23 Nov, 15 days out
+    expect(screen.queryByText('Add a photo for your ID badge')).not.toBeInTheDocument()
+    cleanup()
+
+    renderApp('/today', { personaId: 'rhys', today: '2026-11-09' }) // 14 days out
+    expect(await screen.findByText('Add a photo for your ID badge')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Add your photo' }))
+    expect(await screen.findByText('Photo for your ID badge')).toBeInTheDocument()
   })
 
   it('lets the joiner change their laptop before the deadline, sending it back for approval', async () => {

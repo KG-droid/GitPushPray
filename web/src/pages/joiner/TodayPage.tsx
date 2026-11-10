@@ -35,6 +35,7 @@ export function TodayPage() {
   const navigate = useNavigate()
   const [openStep, setOpenStep] = useState<string | null>(null)
   const { persona, daysToStart, nextAction } = journey
+  const photoStep = journey.steps.find((s) => s.id === 'id-photo')
 
   // Things someone else's action just unlocked (welcome pack, your buddy) come first.
   const unlockedContent = journey.steps
@@ -114,6 +115,25 @@ export function TodayPage() {
                   Nothing needs you right now. We’ll let you know when something new unlocks.
                 </Typography>
               </Box>
+            </CardContent>
+          </Card>
+        )}
+        {/* The badge photo opens two weeks out; it shouldn't wait behind other steps or it may be missed. */}
+        {photoStep?.state === 'available' && nextAction?.id !== photoStep.id && (
+          <Card sx={{ mt: 1.25 }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
+                <IconTile name={photoStep.icon} />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                    {photoStep.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+                    {photoStep.body}
+                  </Typography>
+                  <StepActions step={photoStep} />
+                </Box>
+              </Stack>
             </CardContent>
           </Card>
         )}
