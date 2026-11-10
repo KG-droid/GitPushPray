@@ -60,6 +60,7 @@ const headsetOptions: ChoiceOption[] = [
   { value: 'poly-voyager-free-60-uc', label: 'HP Poly Voyager Free 60 UC' },
   { value: 'poly-voyager-surround-80', label: 'HP Poly Voyager Surround 80' },
   { value: 'poly-sync-20', label: 'HP Poly SYNC 20' },
+  { value: 'none', label: 'No headset, thanks', detail: 'You can ask for one later through the IT service desk.' },
 ]
 
 const phoneAccessOptions: ChoiceOption[] = [
@@ -198,7 +199,7 @@ export const stepCatalogue: StepDefinition[] = [
     kind: 'choice',
     icon: 'headset',
     title: 'Choose your headset',
-    body: 'Pick the headset that suits how you work. It will be waiting for you with your laptop on Day 1.',
+    body: 'A headset is optional. Pick the one that suits how you work and it will be waiting for you with your laptop on Day 1, or choose no headset.',
     unlock: {
       type: 'all',
       rules: [
